@@ -1,0 +1,29 @@
+[package]
+name = "ecies-ed25519"
+version = "0.1.0"
+authors = ["phayes <patrick.d.hayes@gmail.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+description = "ECIES on Twisted Edwards Curve25519 using AEAD / AES-GCM."
+categories = ["cryptography"]
+keywords = ["cryptography", "ecies", "encryption", "ed25519", "curve25519", "ecc", "aes", "aead"]
+
+[dependencies]
+rand = '0.7.3'
+curve25519-dalek  = "2.0.0"
+hex = { version = '0.4.2', optional = true }
+serde = { version = '1.0.104', optional = true }
+failure = "0.1.6"
+sha2 = "0.8.1" 
+digest = "0.8.1"
+hkdf = "0.8.0"
+aes-gcm = "0.3.0"
+
+[target.'cfg(feature = "serde1")'.dependencies]
+ed25519-dalek = { version = "1.0.0-pre.3", features = ["serde"]}
+
+[target.'cfg(not(feature = "serde1"))'.dependencies]
+ed25519-dalek = { version = "1.0.0-pre.3" }
+
+[features]
+serde1 = ["serde", "hex"]
