@@ -15,7 +15,7 @@ use curve25519_dalek::scalar::Scalar;
 use ed25519_dalek::PublicKey as EdPublicKey;
 use ed25519_dalek::PUBLIC_KEY_LENGTH;
 use hkdf::Hkdf;
-use rand::{thread_rng, Rng};
+use rand::{CryptoRng, RngCore};
 use sha2::Sha256;
 
 pub use ed25519_dalek::SecretKey;
@@ -80,20 +80,22 @@ impl AsRef<[u8]> for PublicKey {
 }
 
 /// Generate a keypair, ready for use in ECIES
-pub fn generate_keypair() -> (SecretKey, PublicKey) {
-    let mut csprng = rand::rngs::OsRng {};
-    let ed25519_dalek::Keypair { public: _, secret } =
-        ed25519_dalek::Keypair::generate(&mut csprng);
+pub fn generate_keypair<R: CryptoRng + RngCore>(rng: &mut R) -> (SecretKey, PublicKey) {
+    let ed25519_dalek::Keypair { public: _, secret } = ed25519_dalek::Keypair::generate(rng);
     let public = PublicKey::from_secret(&secret);
     (secret, public)
 }
 
 /// Encrypt a message using ECIES, it can only be decrypted by the receiver's SecretKey.
-pub fn encrypt(receiver_pub: &PublicKey, msg: &[u8]) -> Vec<u8> {
-    let (ephemeral_sk, ephemeral_pk) = generate_keypair();
+pub fn encrypt<R: CryptoRng + RngCore>(
+    receiver_pub: &PublicKey,
+    msg: &[u8],
+    rng: &mut R,
+) -> Vec<u8> {
+    let (ephemeral_sk, ephemeral_pk) = generate_keypair(rng);
 
     let aes_key = encapsulate(&ephemeral_sk, &receiver_pub);
-    let encrypted = aes_encrypt(&aes_key, msg);
+    let encrypted = aes_encrypt(&aes_key, msg, rng);
 
     let mut cipher_text = Vec::with_capacity(PUBLIC_KEY_LENGTH + encrypted.len());
     cipher_text.extend(ephemeral_pk.to_bytes().iter());
@@ -149,12 +151,12 @@ fn decapsulate(sk: &SecretKey, emphemeral_pk: &PublicKey) -> AesKey {
     hkdf_sha256(master.as_slice())
 }
 
-fn aes_encrypt(key: &AesKey, msg: &[u8]) -> Vec<u8> {
+fn aes_encrypt<R: CryptoRng + RngCore>(key: &AesKey, msg: &[u8], rng: &mut R) -> Vec<u8> {
     let key = GenericArray::clone_from_slice(key);
     let aead = Aes256Gcm::new(key);
 
     let mut nonce = [0u8; AES_IV_LENGTH];
-    thread_rng().fill(&mut nonce);
+    rng.try_fill_bytes(&mut nonce).unwrap();
     let nonce = GenericArray::from_slice(&nonce);
 
     let ciphertext = aead
@@ -182,10 +184,12 @@ fn aes_decrypt(key: &AesKey, ciphertext: &[u8]) -> Result<Vec<u8>, aead::Error> 
 pub mod tests {
     use super::*;
 
+    use rand::thread_rng;
+
     #[test]
     fn test_shared() {
-        let (emphemeral_sk, emphemeral_pk) = generate_keypair();
-        let (peer_sk, peer_pk) = generate_keypair();
+        let (emphemeral_sk, emphemeral_pk) = generate_keypair(&mut thread_rng());
+        let (peer_sk, peer_pk) = generate_keypair(&mut thread_rng());
 
         assert_eq!(
             generate_shared(&emphemeral_sk, &peer_pk),
@@ -201,8 +205,8 @@ pub mod tests {
 
     #[test]
     fn test_encapsulation() {
-        let (emphemeral_sk, emphemeral_pk) = generate_keypair();
-        let (peer_sk, peer_pk) = generate_keypair();
+        let (emphemeral_sk, emphemeral_pk) = generate_keypair(&mut thread_rng());
+        let (peer_sk, peer_pk) = generate_keypair(&mut thread_rng());
 
         assert_eq!(
             encapsulate(&emphemeral_sk, &peer_pk),
@@ -213,10 +217,10 @@ pub mod tests {
     #[test]
     fn test_aes() {
         let mut key = [0u8; 32];
-        thread_rng().fill(&mut key);
+        thread_rng().fill_bytes(&mut key);
 
         let plaintext = b"ABOLISH ICE";
-        let encrypted = aes_encrypt(&key, plaintext);
+        let encrypted = aes_encrypt(&key, plaintext, &mut thread_rng());
         let decrypted = aes_decrypt(&key, &encrypted).unwrap();
 
         assert_eq!(plaintext, decrypted.as_slice());
@@ -224,17 +228,17 @@ pub mod tests {
 
     #[test]
     fn test_ecies_ed25519() {
-        let (peer_sk, peer_pk) = generate_keypair();
+        let (peer_sk, peer_pk) = generate_keypair(&mut thread_rng());
 
         let plaintext = b"ABOLISH ICE";
 
-        let encrypted = encrypt(&peer_pk, plaintext);
+        let encrypted = encrypt(&peer_pk, plaintext, &mut thread_rng());
         let decrypted = decrypt(&peer_sk, &encrypted).unwrap();
 
         assert_eq!(plaintext, decrypted.as_slice());
 
         // Test that it fails when using a bad secret key
-        let (bad_sk, _) = generate_keypair();
+        let (bad_sk, _) = generate_keypair(&mut thread_rng());
         assert!(decrypt(&bad_sk, &encrypted).is_err());
     }
 }
