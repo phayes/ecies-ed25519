@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/phayes/ecies-ed25519/branch/master/graph/badge.svg)](https://codecov.io/gh/phayes/ecies-ed25519)
 
 
-ECIES on Twisted Edwards Curve25519 using AES-GCM. 
+ECIES on Twisted Edwards Curve25519 using AES-GCM and HKDF-SHA256.
 
 ECIES can be used to encrypt data using a public key such that it can only be decrypted by the holder of the corresponding private key. 
 
