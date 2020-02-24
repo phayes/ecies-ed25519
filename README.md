@@ -18,15 +18,15 @@ on all platforms. However, some of these implementations haven't been thoroughly
 ### Example Usage
 ```rust
 let mut csprng = thread_rng();
-let (secret, public) = generate_keypair(&mut csprng);
+let (secret, public) = ecies_ed25519::generate_keypair(&mut csprng);
 
 let message = b"💖🔒";
 
 // Encrypt the message with the public key such that only the holder of the secret key can decrypt it.
-let encrypted = encrypt(&public, message, &mut csprng)?;
+let encrypted = ecies_ed25519::encrypt(&public, message, &mut csprng)?;
 
 // Decrypt the message with the secret key
-let decrypted = decrypt(&peer_sk, &encrypted)?;
+let decrypted = ecies_ed25519::decrypt(&peer_sk, &encrypted)?;
 
 assert_eq!(message, decrypted.as_slice());
 ```
