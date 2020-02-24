@@ -25,18 +25,16 @@
 //!
 //! ## Example Usage
 //! ```rust
-//! let mut csprng = thread_rng();
+//! let mut csprng = rand::thread_rng();
 //! let (secret, public) = ecies_ed25519::generate_keypair(&mut csprng);
 //!
-//! let message = b"I 💖🔒";
+//! let message = "I 💖🔒";
 //!
-//! // Encrypt the message with the public key such that only the holder of the secret key can decrypt it.
-//! let encrypted = ecies_ed25519::encrypt(&public, message, &mut csprng)?;
+//! // Encrypt the message with the public key such that only the holder of the secret key can decrypt.
+//! let encrypted = ecies_ed25519::encrypt(&public, message.as_bytes(), &mut csprng).unwrap();
 //!
 //! // Decrypt the message with the secret key
-//! let decrypted = ecies_ed25519::decrypt(&peer_sk, &encrypted)?;
-//!
-//! assert_eq!(message, decrypted.as_slice());
+//! let decrypted = ecies_ed25519::decrypt(&secret, &encrypted);
 //!```
 
 use curve25519_dalek::constants;
@@ -47,6 +45,7 @@ pub use ed25519_dalek::SecretKey;
 use ed25519_dalek::PUBLIC_KEY_LENGTH;
 use failure::Fail;
 use rand::{CryptoRng, RngCore};
+use zeroize::Zeroize;
 
 #[cfg(feature = "ring")]
 mod ring_backend;
@@ -144,12 +143,16 @@ pub fn encrypt<R: CryptoRng + RngCore>(
 ) -> Result<Vec<u8>, Error> {
     let (ephemeral_sk, ephemeral_pk) = generate_keypair(rng);
 
-    let aes_key = encapsulate(&ephemeral_sk, &receiver_pub);
+    let mut aes_key = encapsulate(&ephemeral_sk, &receiver_pub);
     let encrypted = aes_encrypt(&aes_key, msg, rng)?;
 
     let mut cipher_text = Vec::with_capacity(PUBLIC_KEY_LENGTH + encrypted.len());
     cipher_text.extend(ephemeral_pk.to_bytes().iter());
     cipher_text.extend(encrypted);
+
+    // Zeroize secrets
+    // TODO: check that SecretKey auto-zeroizes
+    aes_key.zeroize();
 
     Ok(cipher_text)
 }
@@ -162,17 +165,29 @@ pub fn decrypt(receiver_sec: &SecretKey, ciphertext: &[u8]) -> Result<Vec<u8>, E
 
     let ephemeral_pk = PublicKey::from_bytes(&ciphertext[..PUBLIC_KEY_LENGTH])?;
     let encrypted = &ciphertext[PUBLIC_KEY_LENGTH..];
-    let aes_key = decapsulate(&receiver_sec, &ephemeral_pk);
+    let mut aes_key = decapsulate(&receiver_sec, &ephemeral_pk);
 
-    aes_decrypt(&aes_key, encrypted).map_err(|_| Error::DecryptionFailed)
+    let decrypted = aes_decrypt(&aes_key, encrypted).map_err(|_| Error::DecryptionFailed)?;
+
+    // Zeroize secrets
+    aes_key.zeroize();
+
+    Ok(decrypted)
 }
 
 fn generate_shared(secret: &SecretKey, public: &PublicKey) -> SharedSecret {
     let public = public.to_point();
-    let secret = Scalar::from_bits(secret.to_bytes());
+    let mut secret = Scalar::from_bits(secret.to_bytes());
     let shared_point = public * secret;
-    let shared_point = shared_point.compress();
-    shared_point.as_bytes().to_owned()
+    let shared_point_compressed = shared_point.compress();
+
+    let output = shared_point_compressed.as_bytes().to_owned();
+
+    // Zeroize secrets
+    // TODO: Check that EdwardsPoint auto zeroize
+    secret.zeroize();
+
+    output
 }
 
 fn encapsulate(emphemeral_sk: &SecretKey, peer_pk: &PublicKey) -> AesKey {
@@ -183,7 +198,13 @@ fn encapsulate(emphemeral_sk: &SecretKey, peer_pk: &PublicKey) -> AesKey {
     let mut master = Vec::with_capacity(32 * 2);
     master.extend(emphemeral_pk.0.as_bytes().iter());
     master.extend(shared_point.iter());
-    hkdf_sha256(master.as_slice())
+
+    let key = hkdf_sha256(master.as_slice());
+
+    // Zeroize secrets
+    master.zeroize();
+
+    key
 }
 
 fn decapsulate(sk: &SecretKey, emphemeral_pk: &PublicKey) -> AesKey {
@@ -193,7 +214,12 @@ fn decapsulate(sk: &SecretKey, emphemeral_pk: &PublicKey) -> AesKey {
     master.extend(emphemeral_pk.0.as_bytes().iter());
     master.extend(shared_point.iter());
 
-    hkdf_sha256(master.as_slice())
+    let key = hkdf_sha256(master.as_slice());
+
+    // Zeroize secrets
+    master.zeroize();
+
+    key
 }
 
 /// Error types

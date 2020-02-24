@@ -14,9 +14,10 @@ rand = '0.7.3'
 curve25519-dalek  = "2.0.0"
 failure = "0.1.6"
 ed25519-dalek = { version = "1.0.0-pre.3" }
+zeroize = "1.1.0"
 
 # "ring" feature
-ring = { version = "0.16.11", optional = true}
+ring = { version = "0.16.11", optional = true }
 
 # "pure_rust" feature
 aes-gcm = { version = "0.3.0", optional = true}
