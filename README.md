@@ -1,5 +1,5 @@
 # ecies-ed25519
-
+![checks](https://github.com/phayes/ecies-ed25519/workflows/checks/badge.svg)
 
 ECIES on Twisted Edwards Curve25519 using AEAD / AES-GCM
 
