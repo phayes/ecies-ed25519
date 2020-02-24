@@ -18,7 +18,7 @@ and provides two different backends for HKDF/AEAD/AES-GCM operations.
 2. The `pure_rust` backend. It uses a collection of  pure-rust implementations of SHA2, HKDF, AES, and AEAD, which will work
    on all platforms. However, some of these implementations haven't been thoroughly reviewed. To activate this backend add this to your Cargo.toml file: 
 
-    ` ecies-ed25519 = { version = "0.1", features=["pure_rust"] }`.
+    ` ecies-ed25519 = { version = "0.1", features = ["pure_rust"] }`
 
 
 ### Example Usage
