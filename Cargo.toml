@@ -15,10 +15,6 @@ curve25519-dalek  = "2.0.0"
 failure = "0.1.6"
 ed25519-dalek = { version = "1.0.0-pre.3" }
 
-# "serde1" feature
-hex = { version = '0.4.2', optional = true }
-serde = { version = '1.0.104', optional = true }
-
 # "ring" feature
 ring = { version = "0.16.11", optional = true}
 
