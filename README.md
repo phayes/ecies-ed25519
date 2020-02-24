@@ -15,7 +15,7 @@ BoringSSL, but cannot run on all platforms. For example it won't work on WASM.
 on all platforms. However, some of these implementations haven't been thoroughly reviewed. To activate this backend add this to your Cargo.toml file: ` ecies-ed25519 = { version = "0.1", features=["pure_rust"] }`.
 
 
-### Simple Example
+### Example Usage
 ```rust
 let mut csprng = thread_rng();
 let (secret, public) = generate_keypair(&mut csprng);
