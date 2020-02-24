@@ -17,7 +17,7 @@ on all platforms. However, some of these implementations haven't been thoroughly
 ### Running Tests
 
 You should run tests on both backends:
-```bash
-> cargo test --no-default-features --features ring
-> cargo test --no-default-features --features pure_rust
+```
+cargo test --no-default-features --features ring
+cargo test --no-default-features --features pure_rust
 ```
