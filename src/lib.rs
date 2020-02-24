@@ -1,6 +1,6 @@
 //! ECIES-ed25519: An Integrated Encryption Scheme on Twisted Edwards Curve25519.
 //!
-//! It uses many of the same primitives as the ed25519 signature scheme, but is also different.
+//! It uses many of the same primitives as the ed25519 signature scheme, but is also different in some ways:
 //!   - It uses the same Secret Key representation as the ed25519 signature scheme.
 //!   - It uses a different Public Key representation. While the ed25519 signature scheme hashes the
 //!     secret key and mangles some bits before using it to derive the public key,
@@ -80,7 +80,7 @@ impl PublicKey {
     }
 
     /// Get the Edwards Point for this public key
-    pub fn as_point(&self) -> EdwardsPoint {
+    pub fn to_point(&self) -> EdwardsPoint {
         CompressedEdwardsY::from_slice(self.0.as_bytes())
             .decompress()
             .expect("ecies-ed25519: unexpect error decompressing public key")
@@ -132,7 +132,7 @@ pub fn decrypt(receiver_sec: &SecretKey, ciphertext: &[u8]) -> Result<Vec<u8>, E
 }
 
 fn generate_shared(secret: &SecretKey, public: &PublicKey) -> SharedSecret {
-    let public = public.as_point();
+    let public = public.to_point();
     let secret = Scalar::from_bits(secret.to_bytes());
     let shared_point = public * secret;
     let shared_point = shared_point.compress();
