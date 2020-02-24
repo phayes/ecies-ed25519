@@ -1,11 +1,43 @@
 //! ECIES-ed25519: An Integrated Encryption Scheme on Twisted Edwards Curve25519.
 //!
-//! It uses many of the same primitives as the ed25519 signature scheme, but is also different in some ways:
-//!   - It uses the same Secret Key representation as the ed25519 signature scheme.
+
+//! ECIES can be used to encrypt data using a public key such that it can only be decrypted
+//! by the holder of the corresponding private key. It is based on [ed25519-dalek](https://docs.rs/ed25519-dalek).
+//!
+//!   - It uses the same Secret Key as ed25519-dalek. `ecies_ed25519::SecretKey` is simply
+//!     a re-export of `ed25519_dalek::SecretKey`
 //!   - It uses a different Public Key representation. While the ed25519 signature scheme hashes the
 //!     secret key and mangles some bits before using it to derive the public key,
 //!     ECIES-ed25519 uses the secret key directly. This means you should take care to
 //!     use a good secure RNG or KDF to generate a your secret key.
+//!
+//!
+//! There are two different backends for HKDF/AEAD/AES-GCM operations:
+//!
+//!   - The `ring` backend (default) uses [ring](https://briansmith.org/rustdoc/ring/). It uses rock solid primitives based on BoringSSL,
+//!     but cannot run on all platforms. For example it won't work in web assembly.
+//!
+//!   - The `pure_rust` backend. It uses a collection of pure-rust implementations of SHA2, HKDF, AES, and AEAD,
+//!     which will work on all platforms. However, some of these implementations haven't been thoroughly reviewed.
+//!     To activate this backend add this to your `Cargo.toml` file:
+//!     
+//!     `ecies-ed25519 = { version = "0.1", features = ["pure_rust"] }`
+//!
+//! ## Example Usage
+//! ```rust
+//! let mut csprng = thread_rng();
+//! let (secret, public) = ecies_ed25519::generate_keypair(&mut csprng);
+//!
+//! let message = b"I 💖🔒";
+//!
+//! // Encrypt the message with the public key such that only the holder of the secret key can decrypt it.
+//! let encrypted = ecies_ed25519::encrypt(&public, message, &mut csprng)?;
+//!
+//! // Decrypt the message with the secret key
+//! let decrypted = ecies_ed25519::decrypt(&peer_sk, &encrypted)?;
+//!
+//! assert_eq!(message, decrypted.as_slice());
+//!```
 
 use curve25519_dalek::constants;
 use curve25519_dalek::edwards::{CompressedEdwardsY, EdwardsPoint};
@@ -29,10 +61,14 @@ mod pure_rust_backend;
 use pure_rust_backend::*;
 
 #[cfg(not(any(feature = "ring", feature = "pure_rust")))]
-compile_error!("Either feature 'ring' or 'pure_rust' must be enabled for this crate.");
+compile_error!(
+    "ecies-rd25519: Either feature 'ring' or 'pure_rust' must be enabled for this crate."
+);
 
 #[cfg(all(feature = "ring", feature = "pure_rust"))]
-compile_error!("Feature 'ring' and 'pure_rust' cannot both be enabled. Please choose one.");
+compile_error!(
+    "ecies-rd25519: Feature 'ring' and 'pure_rust' cannot both be enabled. Please choose one."
+);
 
 const HKDF_INFO: &[u8; 13] = b"ecies-ed25519";
 
@@ -163,18 +199,23 @@ fn decapsulate(sk: &SecretKey, emphemeral_pk: &PublicKey) -> AesKey {
 /// Error types
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// Encryption failed
     #[fail(display = "ecies-rd25519: encryption failed")]
     EncryptionFailed,
 
+    /// Encryption failed - RNG error
     #[fail(display = "ecies-rd25519: encryption failed - RNG error")]
     EncryptionFailedRng,
 
+    /// Decryption failed
     #[fail(display = "ecies-rd25519: decryption failed")]
     DecryptionFailed,
 
-    #[fail(display = "ecies-rd25519: encryption failed - ciphertext too short")]
+    /// Decryption failed - ciphertext too short
+    #[fail(display = "ecies-rd25519: decryption failed - ciphertext too short")]
     DecryptionFailedCiphertextShort,
 
+    /// Invalid public key bytes
     #[fail(display = "ecies-rd25519: invalid public key bytes")]
     InvalidPublicKeyBytes,
 }
