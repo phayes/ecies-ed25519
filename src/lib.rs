@@ -7,18 +7,26 @@
 //!     ECIES-ed25519 uses the secret key directly. This means you should take care to
 //!     use a good secure RNG or KDF to generate a your secret key.
 
-use aes_gcm::aead::{self, generic_array::GenericArray, Aead, NewAead};
-use aes_gcm::Aes256Gcm;
 use curve25519_dalek::constants;
 use curve25519_dalek::edwards::{CompressedEdwardsY, EdwardsPoint};
 use curve25519_dalek::scalar::Scalar;
 use ed25519_dalek::PublicKey as EdPublicKey;
-use ed25519_dalek::PUBLIC_KEY_LENGTH;
-use hkdf::Hkdf;
-use rand::{CryptoRng, RngCore};
-use sha2::Sha256;
-
 pub use ed25519_dalek::SecretKey;
+use ed25519_dalek::PUBLIC_KEY_LENGTH;
+use failure::Fail;
+use rand::{CryptoRng, RngCore};
+
+#[cfg(feature = "pure_rust")]
+mod pure_rust_backend;
+
+#[cfg(feature = "pure_rust")]
+use pure_rust_backend::*;
+
+#[cfg(not(any(feature = "ring", feature = "pure_rust")))]
+compile_error!("Either feature 'ring' or 'pure_rust' must be enabled for this crate.");
+
+#[cfg(all(feature = "ring", feature = "pure_rust"))]
+compile_error!("Feature 'ring' and 'pure_rust' cannot both be enabled. Please choose one.");
 
 const AES_IV_LENGTH: usize = 12;
 
@@ -27,7 +35,7 @@ type SharedSecret = [u8; 32];
 
 /// An ed25519 Public Key meant for use in ECIES.
 ///
-/// Neither it's PrivateKey nor should this public key be used for signing
+/// Neither this public key (nor it's corresponding  PrivateKey) should be used for signing
 /// or in any other protocol other than ECIES.
 #[derive(Debug, Clone)]
 pub struct PublicKey(EdPublicKey);
@@ -91,35 +99,28 @@ pub fn encrypt<R: CryptoRng + RngCore>(
     receiver_pub: &PublicKey,
     msg: &[u8],
     rng: &mut R,
-) -> Vec<u8> {
+) -> Result<Vec<u8>, Error> {
     let (ephemeral_sk, ephemeral_pk) = generate_keypair(rng);
 
     let aes_key = encapsulate(&ephemeral_sk, &receiver_pub);
-    let encrypted = aes_encrypt(&aes_key, msg, rng);
+    let encrypted = aes_encrypt(&aes_key, msg, rng)?;
 
     let mut cipher_text = Vec::with_capacity(PUBLIC_KEY_LENGTH + encrypted.len());
     cipher_text.extend(ephemeral_pk.to_bytes().iter());
     cipher_text.extend(encrypted);
 
-    cipher_text
+    Ok(cipher_text)
 }
 
 /// Decrypt a ECIES encrypted ciphertext using the receiver's SecretKey.
-pub fn decrypt(receiver_sec: &SecretKey, msg: &[u8]) -> Result<Vec<u8>, aead::Error> {
+pub fn decrypt(receiver_sec: &SecretKey, msg: &[u8]) -> Result<Vec<u8>, Error> {
     // TODO: check size of msg and throw error
 
     let ephemeral_pk = PublicKey::from_bytes(&msg[..PUBLIC_KEY_LENGTH]).unwrap();
     let encrypted = &msg[PUBLIC_KEY_LENGTH..];
     let aes_key = decapsulate(&receiver_sec, &ephemeral_pk);
 
-    aes_decrypt(&aes_key, encrypted)
-}
-
-fn hkdf_sha256(master: &[u8]) -> AesKey {
-    let h = Hkdf::<Sha256>::new(None, master);
-    let mut out = [0u8; 32];
-    h.expand(&[], &mut out).unwrap();
-    out
+    aes_decrypt(&aes_key, encrypted).map_err(|_| Error::DecryptionFailed)
 }
 
 fn generate_shared(secret: &SecretKey, public: &PublicKey) -> SharedSecret {
@@ -151,33 +152,17 @@ fn decapsulate(sk: &SecretKey, emphemeral_pk: &PublicKey) -> AesKey {
     hkdf_sha256(master.as_slice())
 }
 
-fn aes_encrypt<R: CryptoRng + RngCore>(key: &AesKey, msg: &[u8], rng: &mut R) -> Vec<u8> {
-    let key = GenericArray::clone_from_slice(key);
-    let aead = Aes256Gcm::new(key);
+/// Error types
+#[derive(Debug, Fail)]
+pub enum Error {
+    #[fail(display = "ecies-rd25519: encryption failed")]
+    EncryptionFailed,
 
-    let mut nonce = [0u8; AES_IV_LENGTH];
-    rng.try_fill_bytes(&mut nonce).unwrap();
-    let nonce = GenericArray::from_slice(&nonce);
+    #[fail(display = "ecies-rd25519: encryption failed - RNG error")]
+    EncryptionFailedRng,
 
-    let ciphertext = aead
-        .encrypt(nonce, msg)
-        .expect("cryptoballot: ecies_ed25519: encryption failure!");
-
-    let mut output = Vec::with_capacity(AES_IV_LENGTH + ciphertext.len());
-    output.extend(nonce);
-    output.extend(ciphertext);
-
-    output
-}
-
-fn aes_decrypt(key: &AesKey, ciphertext: &[u8]) -> Result<Vec<u8>, aead::Error> {
-    let key = GenericArray::clone_from_slice(key);
-    let aead = Aes256Gcm::new(key);
-
-    let nonce = GenericArray::from_slice(&ciphertext[..AES_IV_LENGTH]);
-    let encrypted = &ciphertext[AES_IV_LENGTH..];
-
-    aead.decrypt(nonce, encrypted)
+    #[fail(display = "ecies-rd25519: decryption failed")]
+    DecryptionFailed,
 }
 
 #[cfg(test)]
@@ -220,7 +205,7 @@ pub mod tests {
         thread_rng().fill_bytes(&mut key);
 
         let plaintext = b"ABOLISH ICE";
-        let encrypted = aes_encrypt(&key, plaintext, &mut thread_rng());
+        let encrypted = aes_encrypt(&key, plaintext, &mut thread_rng()).unwrap();
         let decrypted = aes_decrypt(&key, &encrypted).unwrap();
 
         assert_eq!(plaintext, decrypted.as_slice());
@@ -232,7 +217,7 @@ pub mod tests {
 
         let plaintext = b"ABOLISH ICE";
 
-        let encrypted = encrypt(&peer_pk, plaintext, &mut thread_rng());
+        let encrypted = encrypt(&peer_pk, plaintext, &mut thread_rng()).unwrap();
         let decrypted = decrypt(&peer_sk, &encrypted).unwrap();
 
         assert_eq!(plaintext, decrypted.as_slice());
