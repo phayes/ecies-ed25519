@@ -7,6 +7,7 @@ license = "MIT OR Apache-2.0"
 description = "ECIES on Twisted Edwards Curve25519 using AEAD / AES-GCM."
 categories = ["cryptography"]
 keywords = ["ecies", "encryption", "ed25519", "curve25519", "aes-gcm"]
+repository = "https://github.com/phayes/ecies-ed25519"
 
 [dependencies]
 rand = '0.7.3'
