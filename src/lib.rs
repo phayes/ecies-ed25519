@@ -187,6 +187,7 @@ pub mod tests {
     use super::*;
 
     use rand::thread_rng;
+    use rand::SeedableRng;
 
     #[test]
     fn test_shared() {
@@ -218,11 +219,12 @@ pub mod tests {
 
     #[test]
     fn test_aes() {
+        let mut test_rng = rand::rngs::StdRng::from_seed([0u8; 32]);
         let mut key = [0u8; 32];
-        thread_rng().fill_bytes(&mut key);
+        test_rng.fill_bytes(&mut key);
 
-        let plaintext = b"ABOLISH ICE";
-        let encrypted = aes_encrypt(&key, plaintext, &mut thread_rng()).unwrap();
+        let plaintext = b"ABC";
+        let encrypted = aes_encrypt(&key, plaintext, &mut test_rng).unwrap();
         let decrypted = aes_decrypt(&key, &encrypted).unwrap();
 
         assert_eq!(plaintext, decrypted.as_slice());
@@ -242,5 +244,54 @@ pub mod tests {
         // Test that it fails when using a bad secret key
         let (bad_sk, _) = generate_keypair(&mut thread_rng());
         assert!(decrypt(&bad_sk, &encrypted).is_err());
+    }
+
+    #[test]
+    fn test_hkdf_sha256_interop() {
+        let known_key: [u8; 32] = [
+            225, 246, 159, 99, 54, 215, 137, 0, 136, 228, 91, 159, 85, 224, 99, 232, 169, 161, 144,
+            8, 49, 31, 74, 88, 81, 149, 186, 59, 173, 26, 120, 219,
+        ];
+        let key = hkdf_sha256(b"ABC123");
+
+        assert_eq!(key, known_key);
+    }
+
+    #[test]
+    fn test_aes_interop() {
+        let mut test_rng = rand::rngs::StdRng::from_seed([0u8; 32]);
+
+        let mut key = [0u8; 32];
+        test_rng.fill_bytes(&mut key);
+
+        let plaintext = b"ABC";
+
+        let known_encrypted: Vec<u8> = vec![
+            218, 65, 89, 124, 81, 87, 72, 141, 119, 36, 224, 63, 149, 218, 64, 106, 159, 178, 238,
+            212, 36, 223, 93, 107, 19, 211, 62, 75, 195, 46, 177,
+        ];
+
+        let decrypted = aes_decrypt(&key, &known_encrypted).unwrap();
+        assert_eq!(plaintext, decrypted.as_slice());
+    }
+
+    #[test]
+    fn test_ecies_ed25519_interop() {
+        let mut test_rng = rand::rngs::StdRng::from_seed([0u8; 32]);
+
+        let (peer_sk, _peer_pk) = generate_keypair(&mut test_rng);
+
+        let plaintext = b"ABC";
+
+        let known_encrypted: Vec<u8> = vec![
+            235, 249, 207, 231, 91, 38, 106, 202, 22, 34, 114, 191, 107, 122, 99, 157, 43, 210, 46,
+            229, 219, 208, 111, 176, 98, 154, 42, 250, 114, 233, 68, 8, 159, 7, 231, 190, 85, 81,
+            56, 122, 152, 186, 151, 124, 219, 120, 189, 95, 220, 6, 177, 202, 179, 165, 152, 87,
+            236, 30, 37, 190, 168, 189, 16,
+        ];
+
+        let decrypted = decrypt(&peer_sk, &known_encrypted).unwrap();
+
+        assert_eq!(plaintext, decrypted.as_slice());
     }
 }

@@ -8,6 +8,8 @@ use super::AES_IV_LENGTH;
 use super::HKDF_INFO;
 use super::HKDF_SALT;
 
+const AES_TAG_LEN: usize = 16;
+
 pub(crate) fn hkdf_sha256(master: &[u8]) -> AesKey {
     let salt = Salt::new(HKDF_SHA256, HKDF_SALT);
     let prk = salt.extract(master);
@@ -35,9 +37,9 @@ pub(crate) fn aes_encrypt<R: CryptoRng + RngCore>(
     let mut in_out = msg.to_owned();
 
     // The input/output variable need some space for a tag suffix
-    for _ in 0..AES_256_GCM.tag_len() {
-        in_out.push(0);
-    }
+    //for _ in 0..AES_256_GCM.tag_len() {
+    //    in_out.push(0);
+    //}
 
     // Generate the nonce
     let mut nonce_bytes = [0u8; AES_IV_LENGTH];
@@ -49,9 +51,9 @@ pub(crate) fn aes_encrypt<R: CryptoRng + RngCore>(
     key.seal_in_place_append_tag(nonce, Aad::empty(), &mut in_out)
         .map_err(|_| Error::EncryptionFailed)?;
 
-    let mut output = Vec::with_capacity(AES_IV_LENGTH + in_out.len());
+    let mut output = Vec::with_capacity(AES_IV_LENGTH + msg.len() + AES_TAG_LEN);
     output.extend(&nonce_bytes);
-    output.extend(in_out);
+    output.extend(&in_out);
 
     Ok(output)
 }
@@ -62,15 +64,14 @@ pub(crate) fn aes_decrypt(key: &AesKey, ciphertext: &[u8]) -> Result<Vec<u8>, Er
     let key = LessSafeKey::new(key);
 
     let nonce = &ciphertext[..AES_IV_LENGTH];
-    let mut encrypted = ciphertext[AES_IV_LENGTH..].to_owned();
-    dbg!(&encrypted);
+    let mut in_out = ciphertext[AES_IV_LENGTH..].to_owned();
 
     let nonce = Nonce::try_assume_unique_for_key(nonce).expect("invalid length of `nonce`");
 
-    let output = key
-        .open_in_place(nonce, Aad::empty(), &mut encrypted)
+    key.open_in_place(nonce, Aad::empty(), &mut in_out)
         .map_err(|_| Error::DecryptionFailed)?;
 
-    // Truncate the tag off the end and return
-    Ok(output[0..output.len() - 16].to_owned())
+    // Truncate off the extra chuff
+    let plain_len = ciphertext.len() - AES_IV_LENGTH - AES_TAG_LEN;
+    Ok(in_out[..plain_len].to_owned())
 }

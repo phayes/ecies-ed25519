@@ -50,5 +50,7 @@ pub(crate) fn aes_decrypt(key: &AesKey, ciphertext: &[u8]) -> Result<Vec<u8>, ae
     let nonce = GenericArray::from_slice(&ciphertext[..AES_IV_LENGTH]);
     let encrypted = &ciphertext[AES_IV_LENGTH..];
 
-    aead.decrypt(nonce, encrypted)
+    let decrypted = aead.decrypt(nonce, encrypted)?;
+
+    Ok(decrypted)
 }
