@@ -1,4 +1,6 @@
 # ecies-ed25519
+[![docs](https://docs.rs/ecies-ed25519/badge.svg)](https://docs.rs/ecies-ed25519)
+[![crates.io](https://meritbadge.herokuapp.com/ecies-ed25519)](https://crates.io/crates/ecies-ed25519)
 ![checks](https://github.com/phayes/ecies-ed25519/workflows/checks/badge.svg)
 [![codecov](https://codecov.io/gh/phayes/ecies-ed25519/branch/master/graph/badge.svg)](https://codecov.io/gh/phayes/ecies-ed25519)
 
