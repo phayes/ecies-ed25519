@@ -1,9 +1,7 @@
 # ecies-ed25519
 ![checks](https://github.com/phayes/ecies-ed25519/workflows/checks/badge.svg)
 
-ECIES on Twisted Edwards Curve25519 using AEAD / AES-GCM. 
-
-This is not a standard implementation of ECIES, but care has been taken to make it reasonable and follow best practices. 
+ECIES on Twisted Edwards Curve25519 using AES-GCM. 
 
 It uses the excellent [ed25519-dalek](https://github.com/dalek-cryptography/ed25519-dalek) library for ECC operations, 
 and provides two different backends for HKDF/AEAD/AES-GCM operations. 
