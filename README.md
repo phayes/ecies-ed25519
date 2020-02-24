@@ -20,7 +20,7 @@ on all platforms. However, some of these implementations haven't been thoroughly
 let mut csprng = thread_rng();
 let (secret, public) = ecies_ed25519::generate_keypair(&mut csprng);
 
-let message = b"💖🔒";
+let message = b"I 💖🔒";
 
 // Encrypt the message with the public key such that only the holder of the secret key can decrypt it.
 let encrypted = ecies_ed25519::encrypt(&public, message, &mut csprng)?;
