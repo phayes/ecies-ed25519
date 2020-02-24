@@ -6,7 +6,7 @@ edition = "2018"
 license = "MIT OR Apache-2.0"
 description = "ECIES on Twisted Edwards Curve25519 using AEAD / AES-GCM."
 categories = ["cryptography"]
-keywords = ["cryptography", "ecies", "encryption", "ed25519", "curve25519", "ecc", "aes", "aead"]
+keywords = ["ecies", "encryption", "ed25519", "curve25519", "aes-gcm"]
 
 [dependencies]
 rand = '0.7.3'
