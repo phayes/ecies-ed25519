@@ -3,6 +3,8 @@
 
 ECIES on Twisted Edwards Curve25519 using AES-GCM. 
 
+ECIES can be used to encrypt data using a public key such that it can only be decrypted by the holder of the corresponding private key. 
+
 It uses the excellent [ed25519-dalek](https://github.com/dalek-cryptography/ed25519-dalek) library for ECC operations, 
 and provides two different backends for HKDF/AEAD/AES-GCM operations. 
 
