@@ -27,4 +27,3 @@ hkdf = { version = "0.8.0", optional = true }
 [features]
 default = ["ring"]
 pure_rust = ["aes-gcm",  "sha2", "digest", "hkdf"]
-serde1 = ["serde", "hex"]
