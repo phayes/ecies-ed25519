@@ -57,19 +57,17 @@ impl PublicKey {
     ///
     /// Will return None if the bytes are invalid
     #[inline]
-    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        let public = match EdPublicKey::from_bytes(bytes) {
-            Ok(public) => public,
-            Err(_) => return None,
-        };
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, Error> {
+        let public = EdPublicKey::from_bytes(bytes).map_err(|_| Error::InvalidPublicKeyBytes)?;
 
-        Some(PublicKey(public))
+        Ok(PublicKey(public))
     }
 
     /// Derive a public key from a private key
     pub fn from_secret(sk: &SecretKey) -> Self {
         let point = &Scalar::from_bits(sk.to_bytes()) * &constants::ED25519_BASEPOINT_TABLE;
-        let public = EdPublicKey::from_bytes(&point.compress().to_bytes()).unwrap();
+        let public = EdPublicKey::from_bytes(&point.compress().to_bytes())
+            .expect("ecies-ed25519: unexpect error generating public key from private key");
         PublicKey(public)
     }
 
@@ -77,7 +75,7 @@ impl PublicKey {
     pub fn as_point(&self) -> EdwardsPoint {
         CompressedEdwardsY::from_slice(self.0.as_bytes())
             .decompress()
-            .unwrap()
+            .expect("ecies-ed25519: unexpect error decompressing public key")
     }
 }
 
@@ -113,11 +111,13 @@ pub fn encrypt<R: CryptoRng + RngCore>(
 }
 
 /// Decrypt a ECIES encrypted ciphertext using the receiver's SecretKey.
-pub fn decrypt(receiver_sec: &SecretKey, msg: &[u8]) -> Result<Vec<u8>, Error> {
-    // TODO: check size of msg and throw error
+pub fn decrypt(receiver_sec: &SecretKey, ciphertext: &[u8]) -> Result<Vec<u8>, Error> {
+    if ciphertext.len() <= PUBLIC_KEY_LENGTH {
+        return Err(Error::DecryptionFailedCiphertextShort);
+    }
 
-    let ephemeral_pk = PublicKey::from_bytes(&msg[..PUBLIC_KEY_LENGTH]).unwrap();
-    let encrypted = &msg[PUBLIC_KEY_LENGTH..];
+    let ephemeral_pk = PublicKey::from_bytes(&ciphertext[..PUBLIC_KEY_LENGTH])?;
+    let encrypted = &ciphertext[PUBLIC_KEY_LENGTH..];
     let aes_key = decapsulate(&receiver_sec, &ephemeral_pk);
 
     aes_decrypt(&aes_key, encrypted).map_err(|_| Error::DecryptionFailed)
@@ -163,6 +163,12 @@ pub enum Error {
 
     #[fail(display = "ecies-rd25519: decryption failed")]
     DecryptionFailed,
+
+    #[fail(display = "ecies-rd25519: encryption failed - ciphertext too short")]
+    DecryptionFailedCiphertextShort,
+
+    #[fail(display = "ecies-rd25519: invalid public key bytes")]
+    InvalidPublicKeyBytes,
 }
 
 #[cfg(test)]
