@@ -35,9 +35,6 @@ compile_error!("Either feature 'ring' or 'pure_rust' must be enabled for this cr
 compile_error!("Feature 'ring' and 'pure_rust' cannot both be enabled. Please choose one.");
 
 const HKDF_INFO: &[u8; 13] = b"ecies-ed25519";
-const HKDF_SALT: &[u8; 16] = &[
-    5, 86, 190, 123, 235, 189, 45, 218, 78, 3, 87, 193, 152, 95, 224, 1,
-];
 
 const AES_IV_LENGTH: usize = 12;
 
@@ -248,13 +245,13 @@ pub mod tests {
 
     #[test]
     fn test_hkdf_sha256_interop() {
-        let known_key: [u8; 32] = [
-            225, 246, 159, 99, 54, 215, 137, 0, 136, 228, 91, 159, 85, 224, 99, 232, 169, 161, 144,
-            8, 49, 31, 74, 88, 81, 149, 186, 59, 173, 26, 120, 219,
+        let known_key: Vec<u8> = vec![
+            204, 68, 78, 7, 8, 70, 53, 136, 56, 115, 129, 183, 226, 82, 147, 253, 62, 59, 170, 188,
+            131, 119, 31, 21, 249, 255, 19, 103, 230, 24, 213, 204,
         ];
         let key = hkdf_sha256(b"ABC123");
 
-        assert_eq!(key, known_key);
+        assert_eq!(key.to_vec(), known_key);
     }
 
     #[test]
@@ -282,12 +279,11 @@ pub mod tests {
         let (peer_sk, _peer_pk) = generate_keypair(&mut test_rng);
 
         let plaintext = b"ABC";
-
         let known_encrypted: Vec<u8> = vec![
             235, 249, 207, 231, 91, 38, 106, 202, 22, 34, 114, 191, 107, 122, 99, 157, 43, 210, 46,
             229, 219, 208, 111, 176, 98, 154, 42, 250, 114, 233, 68, 8, 159, 7, 231, 190, 85, 81,
-            56, 122, 152, 186, 151, 124, 219, 120, 189, 95, 220, 6, 177, 202, 179, 165, 152, 87,
-            236, 30, 37, 190, 168, 189, 16,
+            56, 122, 152, 186, 151, 124, 246, 147, 163, 153, 29, 85, 248, 238, 194, 15, 180, 98,
+            163, 36, 49, 191, 133, 242, 186,
         ];
 
         let decrypted = decrypt(&peer_sk, &known_encrypted).unwrap();

@@ -6,12 +6,11 @@ use super::AesKey;
 use super::Error;
 use super::AES_IV_LENGTH;
 use super::HKDF_INFO;
-use super::HKDF_SALT;
 
 const AES_TAG_LEN: usize = 16;
 
 pub(crate) fn hkdf_sha256(master: &[u8]) -> AesKey {
-    let salt = Salt::new(HKDF_SHA256, HKDF_SALT);
+    let salt = Salt::new(HKDF_SHA256, &[]);
     let prk = salt.extract(master);
     let okm = prk
         .expand(&[HKDF_INFO], HKDF_SHA256)
