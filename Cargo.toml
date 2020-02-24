@@ -11,18 +11,23 @@ keywords = ["cryptography", "ecies", "encryption", "ed25519", "curve25519", "ecc
 [dependencies]
 rand = '0.7.3'
 curve25519-dalek  = "2.0.0"
-hex = { version = '0.4.2', optional = true }
-serde = { version = '1.0.104', optional = true }
 failure = "0.1.6"
-sha2 = "0.8.1" 
-digest = "0.8.1"
-hkdf = { version = "0.8.0", optional = true }
 ed25519-dalek = { version = "1.0.0-pre.3" }
 
-ring = { version = "0.16.11", optional = true}
-aes-gcm = { version = "0.3.0", optional = true}
+# "serde1" feature
+hex = { version = '0.4.2', optional = true }
+serde = { version = '1.0.104', optional = true }
 
-[features] 
+# "ring" feature
+ring = { version = "0.16.11", optional = true}
+
+# "pure_rust" feature
+aes-gcm = { version = "0.3.0", optional = true}
+sha2 = { version = "0.8.1", optional = true}
+digest = { version = "0.8.1", optional = true}
+hkdf = { version = "0.8.0", optional = true }
+
+[features]
 default = ["pure_rust"]
-pure_rust = ["hkdf", "aes-gcm"]
+pure_rust = ["aes-gcm",  "sha2", "digest", "hkdf"]
 serde1 = ["serde", "hex"]

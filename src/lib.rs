@@ -16,6 +16,12 @@ use ed25519_dalek::PUBLIC_KEY_LENGTH;
 use failure::Fail;
 use rand::{CryptoRng, RngCore};
 
+#[cfg(feature = "ring")]
+mod ring_backend;
+
+#[cfg(feature = "ring")]
+use ring_backend::*;
+
 #[cfg(feature = "pure_rust")]
 mod pure_rust_backend;
 
@@ -27,6 +33,11 @@ compile_error!("Either feature 'ring' or 'pure_rust' must be enabled for this cr
 
 #[cfg(all(feature = "ring", feature = "pure_rust"))]
 compile_error!("Feature 'ring' and 'pure_rust' cannot both be enabled. Please choose one.");
+
+const HKDF_INFO: &[u8; 13] = b"ecies-ed25519";
+const HKDF_SALT: &[u8; 16] = &[
+    5, 86, 190, 123, 235, 189, 45, 218, 78, 3, 87, 193, 152, 95, 224, 1,
+];
 
 const AES_IV_LENGTH: usize = 12;
 
