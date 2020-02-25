@@ -9,8 +9,7 @@ ECIES on Twisted Edwards Curve25519 using AES-GCM and HKDF-SHA256.
 
 ECIES can be used to encrypt data using a public key such that it can only be decrypted by the holder of the corresponding private key. 
 
-It uses the excellent [ed25519-dalek](https://github.com/dalek-cryptography/ed25519-dalek) library for ECC operations, 
-and provides two different backends for HKDF/AEAD/AES-GCM operations. 
+It uses the excellent [curve25519-dalek](https://github.com/dalek-cryptography/curve25519-dalek) library for ECC operations, and provides two different backends for HKDF-SHA256 / AES-GCM operation operations. 
 
 1. The `ring` backend (default) uses [ring](https://github.com/briansmith/ring).  It uses rock solid primitives based on 
        BoringSSL, but cannot run on all platforms. For example it won't work on WASM.
@@ -19,7 +18,6 @@ and provides two different backends for HKDF/AEAD/AES-GCM operations.
    on all platforms. However, some of these implementations haven't been thoroughly reviewed. To activate this backend add this to your Cargo.toml file: 
 
     ` ecies-ed25519 = { version = "0.1", features = ["pure_rust"] }`
-
 
 ### Example Usage
 ```rust
@@ -35,10 +33,15 @@ let encrypted = ecies_ed25519::encrypt(&public, message.as_bytes(), &mut csprng)
 let decrypted = ecies_ed25519::decrypt(&secret, &encrypted);
 ```
 
+### `serde` Support
+
+The `serde` feature is provided for serializing / deserializing private and public keys.
+
+
 ### Running Tests
 
 You should run tests on both backends:
 ```
-cargo test --no-default-features --features ring
-cargo test --no-default-features --features pure_rust
+cargo test --no-default-features --features "ring serde"
+cargo test --no-default-features --features "pure_rust serde"
 ```

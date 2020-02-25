@@ -2,17 +2,9 @@
 //!
 
 //! ECIES can be used to encrypt data using a public key such that it can only be decrypted
-//! by the holder of the corresponding private key. It is based on [ed25519-dalek](https://docs.rs/ed25519-dalek).
+//! by the holder of the corresponding private key. It is based on [curve25519-dalek](https://docs.rs/curve25519-dalek).
 //!
-//!   - It uses the same Secret Key as ed25519-dalek. `ecies_ed25519::SecretKey` is simply
-//!     a re-export of `ed25519_dalek::SecretKey`
-//!   - It uses a different Public Key representation. While the ed25519 signature scheme hashes the
-//!     secret key and mangles some bits before using it to derive the public key,
-//!     ECIES-ed25519 uses the secret key directly. This means you should take care to
-//!     use a good secure RNG or KDF to generate a your secret key.
-//!
-//!
-//! There are two different backends for HKDF/AEAD/AES-GCM operations:
+//! There are two different backends for HKDF-SHA256 / AES-GCM operations:
 //!
 //!   - The `ring` backend (default) uses [ring](https://briansmith.org/rustdoc/ring/). It uses rock solid primitives based on BoringSSL,
 //!     but cannot run on all platforms. For example it won't work in web assembly.
@@ -36,6 +28,11 @@
 //! // Decrypt the message with the secret key
 //! let decrypted = ecies_ed25519::decrypt(&secret, &encrypted);
 //!```
+//!
+//! ## `serde` support
+//!
+//! The `serde` feature is provided for serializing / deserializing private and public keys.
+//!
 
 use curve25519_dalek::scalar::Scalar;
 use failure::Fail;
@@ -312,7 +309,7 @@ pub mod tests {
         let deserialized_public: PublicKey =
             serde_json::from_slice(serialized_public.as_bytes()).unwrap();
 
-        assert_eq!(secret.to_bytes(), deserialized_secret.to_bytes());
+        assert_eq!(secret.as_bytes(), deserialized_secret.as_bytes());
         assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
 
         // Bytes
@@ -322,7 +319,7 @@ pub mod tests {
         let deserialized_secret: SecretKey = serde_json::from_slice(&serialized_secret).unwrap();
         let deserialized_public: PublicKey = serde_json::from_slice(&serialized_public).unwrap();
 
-        assert_eq!(secret.to_bytes(), deserialized_secret.to_bytes());
+        assert_eq!(secret.as_bytes(), deserialized_secret.as_bytes());
         assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
     }
 
@@ -338,7 +335,7 @@ pub mod tests {
         let deserialized_secret: SecretKey = serde_cbor::from_slice(&serialized_secret).unwrap();
         let deserialized_public: PublicKey = serde_cbor::from_slice(&serialized_public).unwrap();
 
-        assert_eq!(secret.to_bytes(), deserialized_secret.to_bytes());
+        assert_eq!(secret.as_bytes(), deserialized_secret.as_bytes());
         assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
     }
 }
