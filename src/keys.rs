@@ -310,8 +310,10 @@ impl<'d> Deserialize<'d> for PublicKey {
                     bytes.zeroize();
                     Ok(pk)
                 } else {
-                    PublicKey::from_bytes(bytes)
-                        .or(Err(SerdeError::invalid_length(bytes.len(), &self)))
+                    if bytes.len() != PUBLIC_KEY_LENGTH {
+                        return Err(SerdeError::invalid_length(bytes.len(), &self));
+                    }
+                    PublicKey::from_bytes(bytes).map_err(|e| SerdeError::custom(e))
                 }
             }
         }
