@@ -306,6 +306,15 @@ pub mod tests {
         assert_eq!(secret.to_bytes(), deserialized_secret.to_bytes());
         assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
 
+        // Stringy bytes
+        let deserialized_secret: SecretKey =
+            serde_json::from_slice(serialized_secret.as_bytes()).unwrap();
+        let deserialized_public: PublicKey =
+            serde_json::from_slice(serialized_public.as_bytes()).unwrap();
+
+        assert_eq!(secret.to_bytes(), deserialized_secret.to_bytes());
+        assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
+
         // Bytes
         let serialized_secret = serde_json::to_vec(&secret).unwrap();
         let serialized_public = serde_json::to_vec(&public).unwrap();
