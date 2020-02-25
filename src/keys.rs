@@ -16,14 +16,13 @@ pub const PUBLIC_KEY_LENGTH: usize = 32;
 #[derive(Debug)]
 pub struct SecretKey(pub(crate) [u8; SECRET_KEY_LENGTH]);
 
-/// Overwrite secret key material with null bytes when it goes out of scope.
+/// Zero a secretKey when it's dropped
 impl Drop for SecretKey {
     fn drop(&mut self) {
         self.0.zeroize();
     }
 }
 
-/// Overwrite secret key material with null bytes when it goes out of scope.
 impl ToHex for SecretKey {
     fn encode_hex<T: FromIterator<char>>(&self) -> T {
         self.0.encode_hex()
@@ -34,7 +33,6 @@ impl ToHex for SecretKey {
     }
 }
 
-/// Overwrite secret key material with null bytes when it goes out of scope.
 impl FromHex for SecretKey {
     type Error = Error;
 
