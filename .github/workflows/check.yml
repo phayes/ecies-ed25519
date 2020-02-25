@@ -14,6 +14,8 @@ jobs:
       run: |
         cargo check --no-default-features --features=ring
         cargo check --no-default-features --features=pure_rust
+        cargo check --no-default-features --features=ring,serde
+        cargo check --no-default-features --features=pure_rust,serde
         cargo clippy --no-default-features --features=ring
         cargo clippy --no-default-features --features=pure_rust
         cargo clippy --no-default-features --features=ring,serde
