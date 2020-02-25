@@ -227,22 +227,14 @@ impl<'d> Deserialize<'d> for SecretKey {
             where
                 E: SerdeError,
             {
-                // If it's 64 bytes, then it must be hex encoded
-                if bytes.len() == SECRET_KEY_LENGTH * 2 {
-                    let mut bytes = hex::decode(bytes).or(Err(SerdeError::invalid_value(
-                        Unexpected::Other("neither valid hex nor a 32 byte array"),
-                        &self,
-                    )))?;
-                    let sk = SecretKey::from_bytes(&bytes).unwrap();
-                    bytes.zeroize();
-                    Ok(sk)
-                } else {
-                    SecretKey::from_bytes(bytes)
-                        .or(Err(SerdeError::invalid_length(bytes.len(), &self)))
-                }
+                SecretKey::from_bytes(bytes).or(Err(SerdeError::invalid_length(bytes.len(), &self)))
             }
         }
-        deserializer.deserialize_bytes(SecretKeyVisitor)
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_str(SecretKeyVisitor)
+        } else {
+            deserializer.deserialize_bytes(SecretKeyVisitor)
+        }
     }
 }
 
@@ -301,23 +293,17 @@ impl<'d> Deserialize<'d> for PublicKey {
             where
                 E: SerdeError,
             {
-                // If it's 64 bytes, then it must be hex encoded
-                if bytes.len() == PUBLIC_KEY_LENGTH * 2 {
-                    let mut bytes = hex::decode(bytes).or(Err(SerdeError::invalid_value(
-                        Unexpected::Other("neither valid hex nor a 32 byte array"),
-                        &self,
-                    )))?;
-                    let pk = PublicKey::from_bytes(&bytes).map_err(|e| SerdeError::custom(e))?;
-                    bytes.zeroize();
-                    Ok(pk)
-                } else {
-                    if bytes.len() != PUBLIC_KEY_LENGTH {
-                        return Err(SerdeError::invalid_length(bytes.len(), &self));
-                    }
-                    PublicKey::from_bytes(bytes).map_err(|e| SerdeError::custom(e))
+                if bytes.len() != PUBLIC_KEY_LENGTH {
+                    return Err(SerdeError::invalid_length(bytes.len(), &self));
                 }
+                PublicKey::from_bytes(bytes).map_err(|e| SerdeError::custom(e))
             }
         }
-        deserializer.deserialize_bytes(PublicKeyVisitor)
+
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_str(PublicKeyVisitor)
+        } else {
+            deserializer.deserialize_bytes(PublicKeyVisitor)
+        }
     }
 }
