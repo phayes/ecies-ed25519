@@ -45,7 +45,6 @@ pub use ed25519_dalek::SecretKey;
 use ed25519_dalek::PUBLIC_KEY_LENGTH;
 use failure::Fail;
 use rand::{CryptoRng, RngCore};
-use zeroize::Zeroize;
 
 #[cfg(feature = "ring")]
 mod ring_backend;
@@ -143,16 +142,12 @@ pub fn encrypt<R: CryptoRng + RngCore>(
 ) -> Result<Vec<u8>, Error> {
     let (ephemeral_sk, ephemeral_pk) = generate_keypair(rng);
 
-    let mut aes_key = encapsulate(&ephemeral_sk, &receiver_pub);
+    let aes_key = encapsulate(&ephemeral_sk, &receiver_pub);
     let encrypted = aes_encrypt(&aes_key, msg, rng)?;
 
     let mut cipher_text = Vec::with_capacity(PUBLIC_KEY_LENGTH + encrypted.len());
     cipher_text.extend(ephemeral_pk.to_bytes().iter());
     cipher_text.extend(encrypted);
-
-    // Zeroize secrets
-    // TODO: check that SecretKey auto-zeroizes
-    aes_key.zeroize();
 
     Ok(cipher_text)
 }
@@ -165,27 +160,20 @@ pub fn decrypt(receiver_sec: &SecretKey, ciphertext: &[u8]) -> Result<Vec<u8>, E
 
     let ephemeral_pk = PublicKey::from_bytes(&ciphertext[..PUBLIC_KEY_LENGTH])?;
     let encrypted = &ciphertext[PUBLIC_KEY_LENGTH..];
-    let mut aes_key = decapsulate(&receiver_sec, &ephemeral_pk);
+    let aes_key = decapsulate(&receiver_sec, &ephemeral_pk);
 
     let decrypted = aes_decrypt(&aes_key, encrypted).map_err(|_| Error::DecryptionFailed)?;
-
-    // Zeroize secrets
-    aes_key.zeroize();
 
     Ok(decrypted)
 }
 
 fn generate_shared(secret: &SecretKey, public: &PublicKey) -> SharedSecret {
     let public = public.to_point();
-    let mut secret = Scalar::from_bits(secret.to_bytes());
+    let secret = Scalar::from_bits(secret.to_bytes());
     let shared_point = public * secret;
     let shared_point_compressed = shared_point.compress();
 
     let output = shared_point_compressed.as_bytes().to_owned();
-
-    // Zeroize secrets
-    // TODO: Check that EdwardsPoint auto zeroize
-    secret.zeroize();
 
     output
 }
@@ -195,14 +183,11 @@ fn encapsulate(emphemeral_sk: &SecretKey, peer_pk: &PublicKey) -> AesKey {
 
     let emphemeral_pk = PublicKey::from_secret(emphemeral_sk);
 
-    let mut master = Vec::with_capacity(32 * 2);
-    master.extend(emphemeral_pk.0.as_bytes().iter());
-    master.extend(shared_point.iter());
+    let mut master = [0u8; 32 * 2];
+    master[..32].clone_from_slice(emphemeral_pk.0.as_bytes());
+    master[32..].clone_from_slice(&shared_point);
 
-    let key = hkdf_sha256(master.as_slice());
-
-    // Zeroize secrets
-    master.zeroize();
+    let key = hkdf_sha256(&master);
 
     key
 }
@@ -210,14 +195,11 @@ fn encapsulate(emphemeral_sk: &SecretKey, peer_pk: &PublicKey) -> AesKey {
 fn decapsulate(sk: &SecretKey, emphemeral_pk: &PublicKey) -> AesKey {
     let shared_point = generate_shared(sk, emphemeral_pk);
 
-    let mut master = Vec::with_capacity(32 * 2);
-    master.extend(emphemeral_pk.0.as_bytes().iter());
-    master.extend(shared_point.iter());
+    let mut master = [0u8; 32 * 2];
+    master[..32].clone_from_slice(emphemeral_pk.0.as_bytes());
+    master[32..].clone_from_slice(&shared_point);
 
-    let key = hkdf_sha256(master.as_slice());
-
-    // Zeroize secrets
-    master.zeroize();
+    let key = hkdf_sha256(&master);
 
     key
 }
