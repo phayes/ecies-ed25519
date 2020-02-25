@@ -285,12 +285,14 @@ impl<'d> Deserialize<'d> for PublicKey {
             where
                 E: SerdeError,
             {
+                if input.len() != PUBLIC_KEY_LENGTH * 2 {
+                    return Err(SerdeError::invalid_length(input.len(), &self));
+                }
                 let mut bytes = hex::decode(input).or(Err(SerdeError::invalid_value(
                     Unexpected::Other("invalid hex"),
                     &self,
                 )))?;
-                let pk = PublicKey::from_bytes(&bytes)
-                    .or(Err(SerdeError::invalid_length(bytes.len(), &self)))?;
+                let pk = PublicKey::from_bytes(&bytes).map_err(|e| SerdeError::custom(e))?;
                 bytes.zeroize();
                 Ok(pk)
             }
@@ -305,8 +307,7 @@ impl<'d> Deserialize<'d> for PublicKey {
                         Unexpected::Other("neither valid hex nor a 32 byte array"),
                         &self,
                     )))?;
-                    let pk = PublicKey::from_bytes(&bytes)
-                        .or(Err(SerdeError::invalid_length(bytes.len(), &self)))?;
+                    let pk = PublicKey::from_bytes(&bytes).map_err(|e| SerdeError::custom(e))?;
                     bytes.zeroize();
                     Ok(pk)
                 } else {
