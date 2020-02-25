@@ -133,6 +133,10 @@ impl PublicKey {
     /// Will return None if the bytes are invalid
     #[inline]
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, Error> {
+        if bytes.len() != PUBLIC_KEY_LENGTH {
+            return Err(Error::InvalidPublicKeyBytes);
+        }
+
         let point = CompressedEdwardsY::from_slice(bytes);
 
         if point.decompress().is_none() {
@@ -224,7 +228,7 @@ impl<'d> Deserialize<'d> for SecretKey {
                 E: SerdeError,
             {
                 // If it's 64 bytes, then it must be hex encoded
-                if bytes.len() == 64 {
+                if bytes.len() == SECRET_KEY_LENGTH * 2 {
                     let mut bytes = hex::decode(bytes).or(Err(SerdeError::invalid_value(
                         Unexpected::Other("neither valid hex nor a 32 byte array"),
                         &self,
@@ -296,7 +300,7 @@ impl<'d> Deserialize<'d> for PublicKey {
                 E: SerdeError,
             {
                 // If it's 64 bytes, then it must be hex encoded
-                if bytes.len() == 64 {
+                if bytes.len() == PUBLIC_KEY_LENGTH * 2 {
                     let mut bytes = hex::decode(bytes).or(Err(SerdeError::invalid_value(
                         Unexpected::Other("neither valid hex nor a 32 byte array"),
                         &self,
