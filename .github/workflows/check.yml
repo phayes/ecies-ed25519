@@ -16,6 +16,8 @@ jobs:
         cargo check --no-default-features --features=pure_rust
         cargo clippy --no-default-features --features=ring
         cargo clippy --no-default-features --features=pure_rust
+        cargo clippy --no-default-features --features=ring,serde
+        cargo clippy --no-default-features --features=pure_rust,serde
 
     - name: Run Tests
       env:
@@ -25,4 +27,8 @@ jobs:
         cargo tarpaulin --no-default-features --features=ring --out Xml
         bash <(curl -s https://codecov.io/bash)
         cargo tarpaulin --no-default-features --features=pure_rust --out Xml
+        bash <(curl -s https://codecov.io/bash)
+        cargo tarpaulin --no-default-features --features=ring,serde --out Xml
+        bash <(curl -s https://codecov.io/bash)
+        cargo tarpaulin --no-default-features --features=pure_rust,serde --out Xml
         bash <(curl -s https://codecov.io/bash)
