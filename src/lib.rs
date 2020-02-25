@@ -296,11 +296,38 @@ pub mod tests {
         let mut test_rng = rand::rngs::StdRng::from_seed([0u8; 32]);
         let (secret, public) = generate_keypair(&mut test_rng);
 
+        // String
         let serialized_secret = serde_json::to_string(&secret).unwrap();
         let serialized_public = serde_json::to_string(&public).unwrap();
 
         let deserialized_secret: SecretKey = serde_json::from_str(&serialized_secret).unwrap();
         let deserialized_public: PublicKey = serde_json::from_str(&serialized_public).unwrap();
+
+        assert_eq!(secret.to_bytes(), deserialized_secret.to_bytes());
+        assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
+
+        // Bytes
+        let serialized_secret = serde_json::to_vec(&secret).unwrap();
+        let serialized_public = serde_json::to_vec(&public).unwrap();
+
+        let deserialized_secret: SecretKey = serde_json::from_slice(&serialized_secret).unwrap();
+        let deserialized_public: PublicKey = serde_json::from_slice(&serialized_public).unwrap();
+
+        assert_eq!(secret.to_bytes(), deserialized_secret.to_bytes());
+        assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_serde_cbor() {
+        let mut test_rng = rand::rngs::StdRng::from_seed([0u8; 32]);
+        let (secret, public) = generate_keypair(&mut test_rng);
+
+        let serialized_secret = serde_cbor::to_vec(&secret).unwrap();
+        let serialized_public = serde_cbor::to_vec(&public).unwrap();
+
+        let deserialized_secret: SecretKey = serde_cbor::from_slice(&serialized_secret).unwrap();
+        let deserialized_public: PublicKey = serde_cbor::from_slice(&serialized_public).unwrap();
 
         assert_eq!(secret.to_bytes(), deserialized_secret.to_bytes());
         assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
