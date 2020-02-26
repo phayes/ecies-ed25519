@@ -287,6 +287,45 @@ pub mod tests {
         assert_eq!(plaintext, decrypted.as_slice());
     }
 
+    #[test]
+    fn test_public_key_extract() {
+        let mut test_rng = rand::rngs::StdRng::from_seed([0u8; 32]);
+
+        let secret = SecretKey::generate(&mut test_rng);
+        let public = PublicKey::from_secret(&secret);
+
+        let _public2 = PublicKey::from_bytes(public.as_bytes());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_hex() {
+        use hex::{FromHex, ToHex};
+
+        let mut test_rng = rand::rngs::StdRng::from_seed([0u8; 32]);
+        let (secret, public) = generate_keypair(&mut test_rng);
+
+        // lower
+        let serialized_secret: String = secret.encode_hex();
+        let serialized_public: String = public.encode_hex();
+
+        let deserialized_secret = SecretKey::from_hex(serialized_secret).unwrap();
+        let deserialized_public = PublicKey::from_hex(&serialized_public).unwrap();
+
+        assert_eq!(secret.to_bytes(), deserialized_secret.to_bytes());
+        assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
+
+        // UPPER
+        let serialized_secret: String = secret.encode_hex_upper();
+        let serialized_public: String = public.encode_hex_upper();
+
+        let deserialized_secret = SecretKey::from_hex(serialized_secret).unwrap();
+        let deserialized_public = PublicKey::from_hex(serialized_public).unwrap();
+
+        assert_eq!(secret.to_bytes(), deserialized_secret.to_bytes());
+        assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
+    }
+
     #[cfg(feature = "serde")]
     #[test]
     fn test_serde_json() {

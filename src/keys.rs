@@ -39,10 +39,8 @@ impl FromHex for SecretKey {
 
     fn from_hex<T: AsRef<[u8]>>(hex: T) -> Result<Self, Error> {
         let mut bytes = Vec::<u8>::from_hex(hex).map_err(|_| Error::InvalidSecretKeyBytes)?;
-
         let sk = Self::from_bytes(&bytes)?;
         bytes.zeroize();
-
         Ok(sk)
     }
 }
@@ -156,6 +154,17 @@ impl PublicKey {
         CompressedEdwardsY::from_slice(self.0.as_bytes())
             .decompress()
             .expect("ecies-ed25519: unexpect error decompressing public key")
+    }
+}
+
+impl FromHex for PublicKey {
+    type Error = Error;
+
+    fn from_hex<T: AsRef<[u8]>>(hex: T) -> Result<Self, Error> {
+        let mut bytes = Vec::<u8>::from_hex(hex).map_err(|_| Error::InvalidPublicKeyBytes)?;
+        let sk = Self::from_bytes(&bytes)?;
+        bytes.zeroize();
+        Ok(sk)
     }
 }
 
