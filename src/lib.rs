@@ -219,6 +219,13 @@ pub mod tests {
         let decrypted = aes_decrypt(&key, &encrypted).unwrap();
 
         assert_eq!(plaintext, decrypted.as_slice());
+
+        // Test bad ciphertext
+        assert!(aes_decrypt(&key, &[0u8; 16]).is_err());
+
+        // Test bad secret key
+        let bad_secret = SecretKey::generate(&mut thread_rng());
+        assert!(aes_decrypt(&bad_secret.as_bytes(), &encrypted).is_err());
     }
 
     #[test]
@@ -232,9 +239,12 @@ pub mod tests {
 
         assert_eq!(plaintext, decrypted.as_slice());
 
+        // Test bad ciphertext
+        assert!(decrypt(&peer_sk, &[0u8; 16]).is_err());
+
         // Test that it fails when using a bad secret key
-        let (bad_sk, _) = generate_keypair(&mut thread_rng());
-        assert!(decrypt(&bad_sk, &encrypted).is_err());
+        let bad_secret = SecretKey::generate(&mut thread_rng());
+        assert!(decrypt(&bad_secret, &encrypted).is_err());
     }
 
     #[test]
