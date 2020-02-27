@@ -16,7 +16,7 @@ It uses the excellent [curve25519-dalek](https://github.com/dalek-cryptography/c
 1. The `pure_rust` backend (default). 
    It uses a collection of  pure-rust implementations of SHA2, HKDF, AES, and AEAD.
 
-2. The `ring` backend (default) uses [ring](https://github.com/briansmith/ring).  It uses rock solid primitives based on BoringSSL, but cannot run on all platforms. For example it won't work on WASM. To activate this backend add this to your Cargo.toml file: 
+2. The `ring` backend uses [ring](https://github.com/briansmith/ring).  It uses rock solid primitives based on BoringSSL, but cannot run on all platforms. For example it won't work on WASM. To activate this backend add this to your Cargo.toml file: 
 
    ` ecies-ed25519 = { version = "0.3", features = ["pure_rust"] }`
 
