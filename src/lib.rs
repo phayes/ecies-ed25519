@@ -292,7 +292,11 @@ pub mod tests {
         let secret = SecretKey::generate(&mut test_rng);
         let public = PublicKey::from_secret(&secret);
 
-        let _public2 = PublicKey::from_bytes(public.as_bytes());
+        PublicKey::from_bytes(public.as_bytes()).unwrap();
+
+        // Test bad bytes
+        assert!(PublicKey::from_bytes(&[0u8; 16]).is_err());
+        assert!(SecretKey::from_bytes(&[0u8; 16]).is_err());
     }
 
     #[cfg(feature = "serde")]
