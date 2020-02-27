@@ -358,6 +358,16 @@ pub mod tests {
 
         assert_eq!(secret.as_bytes(), deserialized_secret.as_bytes());
         assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
+
+        // Test errors - mangle some bits and confirm it doesn't work:
+        let mut serialized_public = serde_json::to_vec(&public).unwrap();
+        serialized_public[0] = 50;
+        assert!(serde_json::from_slice::<PublicKey>(&serialized_public).is_err());
+
+        let mut serialized_public = serde_json::to_vec(&public).unwrap();
+        serialized_public.push(48);
+        serialized_public.push(49);
+        assert!(serde_json::from_slice::<PublicKey>(&serialized_public).is_err());
     }
 
     #[cfg(feature = "serde")]
@@ -374,5 +384,10 @@ pub mod tests {
 
         assert_eq!(secret.as_bytes(), deserialized_secret.as_bytes());
         assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
+
+        // Test errors - mangle some bits and confirm it doesn't work:
+        let mut serialized_public = serde_cbor::to_vec(&public).unwrap();
+        serialized_public[6] = 120;
+        assert!(serde_cbor::from_slice::<PublicKey>(&serialized_public).is_err());
     }
 }
