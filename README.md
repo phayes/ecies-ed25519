@@ -9,6 +9,8 @@ ECIES on Twisted Edwards Curve25519 using AES-GCM and HKDF-SHA256.
 
 ECIES can be used to encrypt data using a public key such that it can only be decrypted by the holder of the corresponding private key. 
 
+*This project has not undergone a security audit. A 1.0 release will not happen until it does.*
+
 It uses the excellent [curve25519-dalek](https://github.com/dalek-cryptography/curve25519-dalek) library for ECC operations, and provides two different backends for HKDF-SHA256 / AES-GCM operation operations. 
     
 1. The `pure_rust` backend (default). 
@@ -16,7 +18,7 @@ It uses the excellent [curve25519-dalek](https://github.com/dalek-cryptography/c
 
 2. The `ring` backend (default) uses [ring](https://github.com/briansmith/ring).  It uses rock solid primitives based on BoringSSL, but cannot run on all platforms. For example it won't work on WASM. To activate this backend add this to your Cargo.toml file: 
 
-   ` ecies-ed25519 = { version = "0.1", features = ["pure_rust"] }`
+   ` ecies-ed25519 = { version = "0.3", features = ["pure_rust"] }`
 
 ### Example Usage
 ```rust

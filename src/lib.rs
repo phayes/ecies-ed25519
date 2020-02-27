@@ -11,7 +11,7 @@
 //!   - The `ring` backend uses [ring](https://briansmith.org/rustdoc/ring/). It uses rock solid primitives based on BoringSSL,
 //!     but cannot run on all platforms. For example it won't work in web assembly. To enable it add the following to your Cargo.toml:
 //!
-//!     `ecies-ed25519 = { version = "0.1", features = ["ring"] }`
+//!     `ecies-ed25519 = { version = "0.3", features = ["ring"] }`
 //!
 //! ## Example Usage
 //! ```rust
