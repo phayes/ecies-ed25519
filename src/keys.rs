@@ -13,7 +13,10 @@ pub const SECRET_KEY_LENGTH: usize = 32;
 /// The length of a `PublicKey`, in bytes.
 pub const PUBLIC_KEY_LENGTH: usize = 32;
 
-// Secret Key
+/// Secret Key
+///
+/// Neither this secret key (nor it's corresponding PublicKey) should be used for signing
+/// or in any other protocol other than ECIES.
 #[derive(Debug)]
 pub struct SecretKey(pub(crate) [u8; SECRET_KEY_LENGTH]);
 
@@ -56,7 +59,7 @@ impl SecretKey {
     #[inline]
     pub fn as_bytes<'a>(&'a self) -> &'a [u8; SECRET_KEY_LENGTH] {
         &self.0
-    } 
+    }
 
     /// Construct a `SecretKey` from a slice of bytes.
     ///
@@ -106,7 +109,7 @@ impl SecretKey {
     }
 }
 
-/// A Public Key meant for use in ECIES.
+/// Public Key
 ///
 /// Neither this public key (nor it's corresponding  PrivateKey) should be used for signing
 /// or in any other protocol other than ECIES.
