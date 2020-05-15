@@ -11,6 +11,9 @@ ECIES can be used to encrypt data using a public key such that it can only be de
 
 *This project has not undergone a security audit. A 1.0 release will not happen until it does.*
 
+
+### Backends
+
 It uses the excellent [curve25519-dalek](https://github.com/dalek-cryptography/curve25519-dalek) library for ECC operations, and provides two different backends for HKDF-SHA256 / AES-GCM operation operations. 
     
 1. The `pure_rust` backend (default). 
