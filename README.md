@@ -61,4 +61,6 @@ RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
 
 ### Future Plans
 
-I will be making this crate generic over both the AEAD and HKDF implementation once [const-generics](https://github.com/rust-lang/rust/issues/44580) is resolved.
+ - I will be making this crate generic over both the AEAD and HKDF implementation once [const-generics](https://github.com/rust-lang/rust/issues/44580) is resolved.
+ 
+ - Add support for [AVX2 and AVX512](https://github.com/dalek-cryptography/curve25519-dalek#backends-and-features)
