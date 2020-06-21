@@ -58,3 +58,7 @@ When targeting modern x86/x86_64 CPUs, use the following RUSTFLAGS to take advan
 ```
 RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
 ```
+
+### Future Plans
+
+I will be making this crate generic over both the AEAD and HKDF implementation once [const-generics](https://github.com/rust-lang/rust/issues/44580) is resolved.
