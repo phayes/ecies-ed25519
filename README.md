@@ -52,7 +52,7 @@ cargo test --no-default-features --features "pure_rust serde"
 
 ### Performance
 
-If using the `pure_rust` backend, by default this crate will use software implementations of both AES and the POLYVAL universal hash function.
+If using the `pure_rust` backend, by default this crate's dependencies will use software implementations of both AES and the POLYVAL universal hash function.
 
 When targeting modern x86/x86_64 CPUs, use the following RUSTFLAGS to take advantage of high performance AES-NI and CLMUL CPU intrinsics:
 
