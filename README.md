@@ -64,3 +64,16 @@ RUSTFLAGS="-Ctarget-cpu=sandybridge -Ctarget-feature=+aes,+sse2,+sse4.1,+ssse3"
  - I will be making this crate generic over both the AEAD and HKDF implementation once [const-generics](https://github.com/rust-lang/rust/issues/44580) is resolved.
  
  - Add support for [AVX2 and AVX512](https://github.com/dalek-cryptography/curve25519-dalek#backends-and-features)
+ 
+ 
+ ### Security Audits
+ 
+This project has not undergone a security audit. A 1.0 release will not happen until it does. Please contact me if you would like to fund or perform a security audit. 
+
+While this library has not undergone a security audit, many of its dependencies have. Dependency audits:
+   - [curve25519-dalek](https://blog.quarkslab.com/resources/2019-08-26-audit-dalek-libraries/19-06-594-REP.pdf)
+   - [ring](https://github.com/ctz/rustls/raw/master/audit/TLS-01-report.pdf)
+   - [aes-gcm](https://research.nccgroup.com/wp-content/uploads/2020/02/NCC_Group_MobileCoin_RustCrypto_AESGCM_ChaCha20Poly1305_Implementation_Review_2020-02-12_v1.0.pdf)
+
+
+   
