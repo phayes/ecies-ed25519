@@ -23,7 +23,7 @@ pub(crate) fn aes_encrypt<R: CryptoRng + RngCore>(
     msg: &[u8],
     rng: &mut R,
 ) -> Result<Vec<u8>, Error> {
-    let key = GenericArray::clone_from_slice(key);
+    let key = GenericArray::from_slice(key);
     let aead = Aes256Gcm::new(key);
 
     let mut nonce = [0u8; AES_IV_LENGTH];
@@ -43,7 +43,7 @@ pub(crate) fn aes_encrypt<R: CryptoRng + RngCore>(
 }
 
 pub(crate) fn aes_decrypt(key: &AesKey, ciphertext: &[u8]) -> Result<Vec<u8>, aead::Error> {
-    let key = GenericArray::clone_from_slice(key);
+    let key = GenericArray::from_slice(key);
     let aead = Aes256Gcm::new(key);
 
     let nonce = GenericArray::from_slice(&ciphertext[..AES_IV_LENGTH]);

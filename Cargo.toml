@@ -1,6 +1,6 @@
 [package]
 name = "ecies-ed25519"
-version = "0.3.2"
+version = "0.4.0-alpha.0"
 authors = ["phayes <patrick.d.hayes@gmail.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
@@ -12,27 +12,27 @@ readme = "README.md"
 
 [dependencies]
 rand = "0.7.3"
-curve25519-dalek  = "2.1.0"
+curve25519-dalek = "2.1.0"
 failure = "0.1.8"
 hex = "0.4.2"
 zeroize = "1.1.0"
- 
+
 # "serde" feature
-serde = { version = "1.0.111", optional = true}
+serde = { version = "1.0.113", optional = true }
 
 # "ring" feature
-ring = { version = "0.16.14", optional = true, features = [] }
+ring = { version = "0.16.15", optional = true, features = [] }
 
 # "pure_rust" feature
-aes-gcm = { version = "0.5.0", optional = true}
-sha2 = { version = "0.8.2", optional = true}
-digest = { version = "0.8.1", optional = true}
-hkdf = { version = "0.8.0", optional = true }
+aes-gcm = { version = "0.6.0", optional = true }
+sha2 = { version = "0.9.0", optional = true }
+digest = { version = "0.9.0", optional = true }
+hkdf = { version = "0.9.0-alpha.0", optional = true }
 
 [features]
 default = ["pure_rust"]
-pure_rust = ["aes-gcm",  "sha2", "digest", "hkdf"]
+pure_rust = ["aes-gcm", "sha2", "digest", "hkdf"]
 
 [dev-dependencies]
-serde_json = "1.0.53"
+serde_json = "1.0.55"
 serde_cbor = "0.11.1"
