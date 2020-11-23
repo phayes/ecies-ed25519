@@ -160,6 +160,7 @@ impl PublicKey {
     }
 }
 
+// Note: ToHex is implemented implicitly through impl AsRef<[u8]> for PublicKey
 impl FromHex for PublicKey {
     type Error = Error;
 
