@@ -33,7 +33,6 @@
 //!
 
 use curve25519_dalek::scalar::Scalar;
-use failure::Fail;
 use rand::{CryptoRng, RngCore};
 
 mod keys;
@@ -146,30 +145,32 @@ fn decapsulate(sk: &SecretKey, emphemeral_pk: &PublicKey) -> AesKey {
 }
 
 /// Error types
-#[derive(Debug, Fail)]
+use thiserror::Error;
+
+#[derive(Debug, Error)]
 pub enum Error {
     /// Encryption failed
-    #[fail(display = "ecies-rd25519: encryption failed")]
+    #[error("ecies-rd25519: encryption failed")]
     EncryptionFailed,
 
     /// Encryption failed - RNG error
-    #[fail(display = "ecies-rd25519: encryption failed - RNG error")]
+    #[error("ecies-rd25519: encryption failed - RNG error")]
     EncryptionFailedRng,
 
     /// Decryption failed
-    #[fail(display = "ecies-rd25519: decryption failed")]
+    #[error("ecies-rd25519: decryption failed")]
     DecryptionFailed,
 
     /// Decryption failed - ciphertext too short
-    #[fail(display = "ecies-rd25519: decryption failed - ciphertext too short")]
+    #[error("ecies-rd25519: decryption failed - ciphertext too short")]
     DecryptionFailedCiphertextShort,
 
     /// Invalid public key bytes
-    #[fail(display = "ecies-rd25519: invalid public key bytes")]
+    #[error("ecies-rd25519: invalid public key bytes")]
     InvalidPublicKeyBytes,
 
     /// Invalid secret key bytes
-    #[fail(display = "ecies-rd25519: invalid secret key bytes")]
+    #[error("ecies-rd25519: invalid secret key bytes")]
     InvalidSecretKeyBytes,
 }
 
