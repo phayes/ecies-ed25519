@@ -17,6 +17,11 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --no-default-features --features "ring serde"
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-default-features --features "pure_rust serde"
 
   rustfmt:
     name: Rustfmt
@@ -67,11 +72,22 @@ jobs:
         with:
           toolchain: stable
           override: true
+      - name: Run cargo-tarpaulin (ring feature)
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          args: "--ignore-tests  --no-default-features --features=ring,serde --out Lcov"
+      - name: Upload to Coveralls
+        # upload only if push
+        if: ${{ github.event_name == 'push' }}
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: "./lcov.info"
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: "--ignore-tests --out Lcov"
-      - name: Upload to Coveralls
+          args: "--ignore-tests  --no-default-features --features=pure_rust,serde --out Lcov"
+      - name: Upload to Coveralls (pure_rust feature)
         # upload only if push
         if: ${{ github.event_name == 'push' }}
         uses: coverallsapp/github-action@master
