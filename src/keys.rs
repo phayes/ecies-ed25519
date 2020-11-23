@@ -57,7 +57,7 @@ impl SecretKey {
 
     /// View this secret key as a byte array.
     #[inline]
-    pub fn as_bytes<'a>(&'a self) -> &'a [u8; SECRET_KEY_LENGTH] {
+    pub fn as_bytes(&self) -> &[u8; SECRET_KEY_LENGTH] {
         &self.0
     }
 
@@ -125,7 +125,7 @@ impl PublicKey {
 
     /// View this public key as a byte array.
     #[inline]
-    pub fn as_bytes<'a>(&'a self) -> &'a [u8; PUBLIC_KEY_LENGTH] {
+    pub fn as_bytes(&self) -> &[u8; PUBLIC_KEY_LENGTH] {
         self.0.as_bytes()
     }
 

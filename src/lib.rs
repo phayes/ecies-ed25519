@@ -127,9 +127,7 @@ fn encapsulate(emphemeral_sk: &SecretKey, peer_pk: &PublicKey) -> AesKey {
     master[..32].clone_from_slice(emphemeral_pk.0.as_bytes());
     master[32..].clone_from_slice(&shared_point);
 
-    let key = hkdf_sha256(&master);
-
-    key
+    hkdf_sha256(&master)
 }
 
 fn decapsulate(sk: &SecretKey, emphemeral_pk: &PublicKey) -> AesKey {
@@ -139,9 +137,7 @@ fn decapsulate(sk: &SecretKey, emphemeral_pk: &PublicKey) -> AesKey {
     master[..32].clone_from_slice(emphemeral_pk.0.as_bytes());
     master[32..].clone_from_slice(&shared_point);
 
-    let key = hkdf_sha256(&master);
-
-    key
+    hkdf_sha256(&master)
 }
 
 /// Error types
