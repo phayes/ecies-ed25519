@@ -113,7 +113,7 @@ impl SecretKey {
 ///
 /// Neither this public key (nor it's corresponding  PrivateKey) should be used for signing
 /// or in any other protocol other than ECIES.
-#[derive(Copy, Clone, Default, Eq, PartialEq)]
+#[derive(Copy, Clone, Default, Eq, PartialEq, Debug)]
 pub struct PublicKey(pub(crate) CompressedEdwardsY);
 
 impl PublicKey {
