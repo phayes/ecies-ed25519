@@ -222,7 +222,7 @@ pub mod tests {
 
         // Test bad secret key
         let bad_secret = SecretKey::generate(&mut thread_rng());
-        assert!(aes_decrypt(&bad_secret.as_bytes(), &encrypted).is_err());
+        assert!(aes_decrypt(bad_secret.as_bytes(), &encrypted).is_err());
     }
 
     #[test]
@@ -265,8 +265,8 @@ pub mod tests {
         let plaintext = b"ABC";
 
         let known_encrypted: Vec<u8> = vec![
-            218, 65, 89, 124, 81, 87, 72, 141, 119, 36, 224, 63, 149, 218, 64, 106, 159, 178, 238,
-            212, 36, 223, 93, 107, 19, 211, 62, 75, 195, 46, 177,
+            218, 65, 89, 124, 81, 87, 72, 141, 119, 36, 224, 63, 86, 241, 65, 93, 81, 204, 169,
+            243, 237, 234, 25, 93, 78, 112, 36, 29, 174, 166, 143,
         ];
 
         let decrypted = aes_decrypt(&key, &known_encrypted).unwrap();
@@ -283,8 +283,8 @@ pub mod tests {
         let known_encrypted: Vec<u8> = vec![
             235, 249, 207, 231, 91, 38, 106, 202, 22, 34, 114, 191, 107, 122, 99, 157, 43, 210, 46,
             229, 219, 208, 111, 176, 98, 154, 42, 250, 114, 233, 68, 8, 159, 7, 231, 190, 85, 81,
-            56, 122, 152, 186, 151, 124, 246, 147, 163, 153, 29, 85, 248, 238, 194, 15, 180, 98,
-            163, 36, 49, 191, 133, 242, 186,
+            56, 122, 152, 186, 151, 124, 203, 80, 56, 105, 230, 199, 174, 135, 195, 51, 48, 88,
+            215, 36, 157, 6, 70, 223, 37,
         ];
 
         let decrypted = decrypt(&peer_sk, &known_encrypted).unwrap();
