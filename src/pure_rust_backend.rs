@@ -1,4 +1,4 @@
-use aes_gcm::aead::{self, generic_array::GenericArray, Aead, NewAead};
+use aes_gcm::aead::{self, generic_array::GenericArray, Aead, KeyInit};
 use aes_gcm::Aes256Gcm;
 use hkdf::Hkdf;
 use rand::{CryptoRng, RngCore};
