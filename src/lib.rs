@@ -257,10 +257,10 @@ pub mod tests {
 
     #[test]
     fn test_aes_interop() {
-        let mut test_rng = rand::rngs::StdRng::from_seed([0u8; 32]);
-
-        let mut key = [0u8; 32];
-        test_rng.fill_bytes(&mut key);
+        let key = [
+            118, 184, 224, 173, 160, 241, 61, 144, 64, 93, 106, 229, 83, 134, 189, 40, 189, 210,
+            25, 184, 160, 141, 237, 26, 168, 54, 239, 204, 139, 119, 13, 199,
+        ];
 
         let plaintext = b"ABC";
 
@@ -275,9 +275,10 @@ pub mod tests {
 
     #[test]
     fn test_ecies_ed25519_interop() {
-        let mut test_rng = rand::rngs::StdRng::from_seed([0u8; 32]);
-
-        let (peer_sk, _peer_pk) = generate_keypair(&mut test_rng);
+        let peer_sk = SecretKey([
+            118, 184, 224, 173, 160, 241, 61, 144, 64, 93, 106, 229, 83, 134, 189, 40, 189, 210,
+            25, 184, 160, 141, 237, 26, 168, 54, 239, 204, 139, 119, 13, 199,
+        ]);
 
         let plaintext = b"ABC";
         let known_encrypted: Vec<u8> = vec![
@@ -397,8 +398,8 @@ pub mod tests {
         assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
 
         // Test errors - mangle some bits and confirm it doesn't work:
-        let mut serialized_public = serde_cbor::to_vec(&public).unwrap();
-        serialized_public[6] = 120;
+        let mut serialized_public = serialized_public;
+        serialized_public[6] ^= 0xFF;
         assert!(serde_cbor::from_slice::<PublicKey>(&serialized_public).is_err());
     }
 }
