@@ -1,8 +1,8 @@
 [package]
 name = "ecies-ed25519"
-version = "0.5.1"
+version = "0.6.0"
 authors = ["phayes <patrick.d.hayes@gmail.com>"]
-edition = "2018"
+edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "ECIES on Twisted Edwards Curve25519 using AES-GCM and HKDF-SHA256"
 categories = ["cryptography"]
