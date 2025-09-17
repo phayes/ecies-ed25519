@@ -2,9 +2,9 @@ use rand::{CryptoRng, RngCore, TryRngCore};
 use ring::aead::*;
 use ring::hkdf::*;
 
+use super::AES_IV_LENGTH;
 use super::AesKey;
 use super::Error;
-use super::AES_IV_LENGTH;
 use super::HKDF_INFO;
 
 #[cfg(not(feature = "std"))]

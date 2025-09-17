@@ -184,8 +184,8 @@ impl AsRef<[u8]> for PublicKey {
 
 #[cfg(feature = "serde")]
 use serde::{
-    de::Error as SerdeError, de::Unexpected, de::Visitor, Deserialize, Deserializer, Serialize,
-    Serializer,
+    Deserialize, Deserializer, Serialize, Serializer, de::Error as SerdeError, de::Unexpected,
+    de::Visitor,
 };
 
 #[cfg(feature = "serde")]

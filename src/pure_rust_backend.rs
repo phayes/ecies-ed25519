@@ -1,12 +1,12 @@
-use aes_gcm::aead::{self, generic_array::GenericArray, Aead, KeyInit};
 use aes_gcm::Aes256Gcm;
+use aes_gcm::aead::{self, Aead, KeyInit, generic_array::GenericArray};
 use hkdf::Hkdf;
 use rand::{CryptoRng, RngCore, TryRngCore};
 use sha2::Sha256;
 
+use super::AES_IV_LENGTH;
 use super::AesKey;
 use super::Error;
-use super::AES_IV_LENGTH;
 use super::HKDF_INFO;
 
 #[cfg(not(feature = "std"))]

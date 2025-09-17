@@ -117,9 +117,7 @@ fn generate_shared(secret: &SecretKey, public: &PublicKey) -> SharedSecret {
     let shared_point = public * secret;
     let shared_point_compressed = shared_point.compress();
 
-    let output = shared_point_compressed.as_bytes().to_owned();
-
-    output
+    shared_point_compressed.as_bytes().to_owned()
 }
 
 fn encapsulate(emphemeral_sk: &SecretKey, peer_pk: &PublicKey) -> AesKey {
@@ -175,8 +173,8 @@ pub enum Error {
 pub mod tests {
     use super::*;
 
-    use rand::thread_rng;
     use rand::SeedableRng;
+    use rand::thread_rng;
 
     #[test]
     fn test_shared() {
