@@ -7,6 +7,9 @@ use hex::{FromHex, ToHex};
 use rand::{CryptoRng, RngCore};
 use zeroize::Zeroize;
 
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
+
 /// The length of a `SecretKey`, in bytes.
 pub const SECRET_KEY_LENGTH: usize = 32;
 

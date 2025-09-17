@@ -32,6 +32,19 @@
 //! The `serde` feature is provided for serializing / deserializing private and public keys.
 //!
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
+#[cfg(not(feature = "std"))]
+extern crate alloc;
+
+#[cfg(not(feature = "std"))]
+use alloc::{borrow::ToOwned, vec::Vec};
+
+#[cfg(not(any(feature = "pure_rust", feature = "ring")))]
+compile_error! {
+    "ecies-ed25519 requires that either `pure_rust` (default) or `ring` feature is enabled"
+}
+
 use curve25519_dalek::scalar::Scalar;
 use rand::{CryptoRng, RngCore};
 
@@ -44,21 +57,11 @@ mod ring_backend;
 #[cfg(feature = "ring")]
 use ring_backend::*;
 
-#[cfg(feature = "pure_rust")]
+#[cfg(not(feature = "ring"))]
 mod pure_rust_backend;
 
-#[cfg(feature = "pure_rust")]
+#[cfg(not(feature = "ring"))]
 use pure_rust_backend::*;
-
-#[cfg(not(any(feature = "ring", feature = "pure_rust")))]
-compile_error!(
-    "ecies-rd25519: Either feature 'ring' or 'pure_rust' must be enabled for this crate."
-);
-
-#[cfg(all(feature = "ring", feature = "pure_rust"))]
-compile_error!(
-    "ecies-rd25519: Feature 'ring' and 'pure_rust' cannot both be enabled. Please choose one."
-);
 
 const HKDF_INFO: &[u8; 13] = b"ecies-ed25519";
 
@@ -141,10 +144,7 @@ fn decapsulate(sk: &SecretKey, emphemeral_pk: &PublicKey) -> AesKey {
     hkdf_sha256(&master)
 }
 
-/// Error types
-use thiserror::Error;
-
-#[derive(Debug, Error)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// Encryption failed
     #[error("ecies-rd25519: encryption failed")]

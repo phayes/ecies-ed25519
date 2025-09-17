@@ -1,4 +1,4 @@
-use rand::{CryptoRng, RngCore};
+use rand::{CryptoRng, RngCore, TryRngCore};
 use ring::aead::*;
 use ring::hkdf::*;
 
@@ -6,6 +6,9 @@ use super::AesKey;
 use super::Error;
 use super::AES_IV_LENGTH;
 use super::HKDF_INFO;
+
+#[cfg(not(feature = "std"))]
+use alloc::{borrow::ToOwned, vec::Vec};
 
 const AES_TAG_LEN: usize = 16;
 

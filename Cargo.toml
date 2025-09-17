@@ -11,23 +11,33 @@ repository = "https://github.com/phayes/ecies-ed25519"
 readme = "README.md"
 
 [dependencies]
-rand = "0.8.5"
+rand = { version = "0.9.2", default-features = false, features = ["os_rng", "small_rng", "alloc"] }
 curve25519-dalek = { version = "4.1.3", features = ["legacy_compatibility"] }
-thiserror = "1.0.64"
-hex = "0.4.3"
+thiserror = { version = "2.0.16", default-features = false}
+hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 zeroize = "1.8.1"
 # "serde" feature
-serde = { version = "1.0.210", optional = true }
+serde = { version = "1.0.210", optional = true, default-features = false}
 # "ring" feature
 ring = { version = "0.17.8", optional = true, features = [] }
 # "pure_rust" feature
-aes-gcm = { version = "0.10.3", optional = true }
+aes-gcm = { version = "0.10.3", optional = true, features = ["alloc"] }
 sha2 = { version = "0.10.8", optional = true }
 digest = { version = "0.10.7", optional = true }
 hkdf = { version = "0.12.4", optional = true }
 
 [features]
-default = ["pure_rust"]
+default = ["pure_rust", "std"]
+std = [
+  "hex/std",
+  "serde?/std",
+  "aes-gcm?/std",
+  "thiserror/std",
+  "rand/std",
+  "rand/std_rng",
+  "rand/thread_rng",
+]
+serde = ["dep:serde", "rand/serde", "hex/serde"]
 pure_rust = ["aes-gcm", "sha2", "digest", "hkdf"]
 
 [dev-dependencies]
