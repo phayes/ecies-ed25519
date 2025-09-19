@@ -40,11 +40,6 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::{borrow::ToOwned, vec::Vec};
 
-#[cfg(not(any(feature = "pure_rust", feature = "ring")))]
-compile_error! {
-    "ecies-ed25519 requires that either `pure_rust` (default) or `ring` feature is enabled"
-}
-
 use curve25519_dalek::scalar::Scalar;
 use rand::{CryptoRng, RngCore};
 
@@ -55,13 +50,13 @@ pub use keys::*;
 mod ring_backend;
 
 #[cfg(feature = "ring")]
-use ring_backend::*;
+use ring_backend::{aes_decrypt, aes_encrypt, hkdf_sha256};
 
 #[cfg(not(feature = "ring"))]
 mod pure_rust_backend;
 
 #[cfg(not(feature = "ring"))]
-use pure_rust_backend::*;
+use pure_rust_backend::{aes_decrypt, aes_encrypt, hkdf_sha256};
 
 const HKDF_INFO: &[u8; 13] = b"ecies-ed25519";
 
