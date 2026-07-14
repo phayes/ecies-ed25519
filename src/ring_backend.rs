@@ -1,4 +1,4 @@
-use rand::{CryptoRng, RngCore};
+use rand_core::CryptoRng;
 use ring::aead::*;
 use ring::hkdf::*;
 
@@ -23,7 +23,7 @@ pub(crate) fn hkdf_sha256(master: &[u8]) -> AesKey {
     out
 }
 
-pub(crate) fn aes_encrypt<R: CryptoRng + RngCore>(
+pub(crate) fn aes_encrypt<R: CryptoRng>(
     key: &AesKey,
     msg: &[u8],
     rng: &mut R,
