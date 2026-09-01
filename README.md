@@ -21,11 +21,11 @@ It uses the excellent [curve25519-dalek](https://github.com/dalek-cryptography/c
 
 2. The `ring` backend uses [ring](https://github.com/briansmith/ring).  It uses rock solid primitives based on BoringSSL, but cannot run on all platforms. For example it won't work on WASM. To activate this backend add this to your Cargo.toml file: 
 
-   ` ecies-ed25519 = { version = "0.3", features = ["ring"] }`
+   ` ecies-ed25519 = { version = "0.5", features = ["ring"] }`
 
 ### Example Usage
 ```rust
-let mut csprng = rand::thread_rng();
+let mut csprng = rand::rng();
 let (secret, public) = ecies_ed25519::generate_keypair(&mut csprng);
 
 let message = "I 💖🔒";
