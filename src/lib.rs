@@ -327,6 +327,28 @@ pub mod tests {
         assert!(SecretKey::from_bytes(&[0u8; 16]).is_err());
     }
 
+    #[test]
+    fn test_public_key_rejects_wrong_length() {
+        // CompressedEdwardsY::from_slice only accepts 32-byte inputs.
+        for bytes in [&[][..], &[0u8; 16][..], &[0u8; 31][..], &[0u8; 33][..]] {
+            let err = PublicKey::from_bytes(bytes).unwrap_err();
+            assert!(
+                matches!(err, Error::InvalidPublicKeyBytes),
+                "expected InvalidPublicKeyBytes for {}-byte input, got {err:?}",
+                bytes.len()
+            );
+        }
+    }
+
+    #[test]
+    fn test_public_key_rejects_non_curve_point() {
+        // y = 2 is not the y-coordinate of an Edwards point on curve25519.
+        let mut bytes = [0u8; 32];
+        bytes[0] = 2;
+        let err = PublicKey::from_bytes(&bytes).unwrap_err();
+        assert!(matches!(err, Error::InvalidPublicKeyBytes));
+    }
+
     #[cfg(feature = "serde")]
     #[test]
     fn test_hex() {
