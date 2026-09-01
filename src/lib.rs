@@ -317,7 +317,6 @@ pub mod tests {
         assert!(matches!(err, Error::InvalidPublicKeyBytes));
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn test_hex() {
         use hex::{FromHex, ToHex};
@@ -394,22 +393,33 @@ pub mod tests {
 
     #[cfg(feature = "serde")]
     #[test]
-    fn test_serde_cbor() {
+    fn test_serde_postcard() {
         let mut test_rng = rand::rngs::StdRng::from_seed([0u8; 32]);
         let (secret, public) = generate_keypair(&mut test_rng);
 
-        let serialized_secret = serde_cbor::to_vec(&secret).unwrap();
-        let serialized_public = serde_cbor::to_vec(&public).unwrap();
+        let serialized_secret = postcard::to_allocvec(&secret).unwrap();
+        let serialized_public = postcard::to_allocvec(&public).unwrap();
 
-        let deserialized_secret: SecretKey = serde_cbor::from_slice(&serialized_secret).unwrap();
-        let deserialized_public: PublicKey = serde_cbor::from_slice(&serialized_public).unwrap();
+        let deserialized_secret: SecretKey = postcard::from_bytes(&serialized_secret).unwrap();
+        let deserialized_public: PublicKey = postcard::from_bytes(&serialized_public).unwrap();
 
         assert_eq!(secret.as_bytes(), deserialized_secret.as_bytes());
         assert_eq!(public.as_bytes(), deserialized_public.as_bytes());
 
-        // Test errors - mangle some bits and confirm it doesn't work:
+        // Flipping a key byte can still yield a valid Edwards point. Encrypting
+        // to that key must not decrypt with the original secret.
+        let mut flipped_public_bytes = serialized_public.clone();
+        flipped_public_bytes[1] ^= 0xFF;
+        let flipped_public: PublicKey = postcard::from_bytes(&flipped_public_bytes).unwrap();
+        assert_ne!(public.as_bytes(), flipped_public.as_bytes());
+
+        let plaintext = b"ABC";
+        let encrypted = encrypt(&flipped_public, plaintext, &mut test_rng).unwrap();
+        assert!(decrypt(&secret, &encrypted).is_err());
+
+        // Malformed postcard (wrong length prefix) must not deserialize.
         let mut serialized_public = serialized_public;
-        serialized_public[6] ^= 0xFF;
-        assert!(serde_cbor::from_slice::<PublicKey>(&serialized_public).is_err());
+        serialized_public[0] ^= 0xFF;
+        assert!(postcard::from_bytes::<PublicKey>(&serialized_public).is_err());
     }
 }
