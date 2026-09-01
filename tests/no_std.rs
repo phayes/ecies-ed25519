@@ -1,7 +1,7 @@
 //! Runtime tests against the crate compiled without the `std` feature.
 //!
 //! Run with:
-//! `cargo test --no-default-features --features pure_rust --test no_std`
+//! `cargo test --no-default-features --test no_std`
 
 #![cfg(not(feature = "std"))]
 

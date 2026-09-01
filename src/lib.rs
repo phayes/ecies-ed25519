@@ -2,16 +2,8 @@
 //!
 
 //! ECIES can be used to encrypt data using a public key such that it can only be decrypted
-//! by the holder of the corresponding private key. It is based on [curve25519-dalek](https://docs.rs/curve25519-dalek).
-//!
-//! There are two different backends for HKDF-SHA256 / AES-GCM operations:
-//!
-//!   - The `pure_rust` backend (default). It uses a collection of pure-rust implementations of SHA2, HKDF, AES, and AEAD.
-//!
-//!   - The `ring` backend uses [ring](https://briansmith.org/rustdoc/ring/). It uses rock solid primitives based on BoringSSL,
-//!     but cannot run on all platforms. For example it won't work in web assembly. To enable it add the following to your Cargo.toml:
-//!
-//!     `ecies-ed25519 = { version = "0.6", default-features = false, features = ["std", "ring"] }`
+//! by the holder of the corresponding private key. It is based on [curve25519-dalek](https://docs.rs/curve25519-dalek),
+//! with HKDF-SHA256 and AES-GCM from the RustCrypto crates.
 //!
 //! ## Example Usage
 //! ```rust
@@ -33,11 +25,9 @@
 //!
 //! ## `no_std` support
 //!
-//! This crate supports `no_std` with `alloc`. Disable default features and enable a backend:
+//! This crate supports `no_std` with `alloc`. Disable default features:
 //!
-//! `ecies-ed25519 = { version = "0.6", default-features = false, features = ["pure_rust"] }`
-//!
-//! The `ring` backend requires the `std` feature.
+//! `ecies-ed25519 = { version = "0.6", default-features = false }`
 //!
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -51,30 +41,8 @@ use rand_core::CryptoRng;
 mod keys;
 pub use keys::*;
 
-#[cfg(feature = "ring")]
-mod ring_backend;
-
-#[cfg(feature = "ring")]
-use ring_backend::*;
-
-#[cfg(feature = "pure_rust")]
-mod pure_rust_backend;
-
-#[cfg(feature = "pure_rust")]
-use pure_rust_backend::*;
-
-#[cfg(not(any(feature = "ring", feature = "pure_rust")))]
-compile_error!(
-    "ecies-rd25519: Either feature 'ring' or 'pure_rust' must be enabled for this crate."
-);
-
-#[cfg(all(feature = "ring", feature = "pure_rust"))]
-compile_error!(
-    "ecies-rd25519: Feature 'ring' and 'pure_rust' cannot both be enabled. Please choose one."
-);
-
-#[cfg(all(feature = "ring", not(feature = "std")))]
-compile_error!("ecies-rd25519: the `ring` backend requires the `std` feature.");
+mod crypto;
+use crypto::*;
 
 const HKDF_INFO: &[u8; 13] = b"ecies-ed25519";
 

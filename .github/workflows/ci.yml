@@ -3,18 +3,13 @@ name: checks
 
 jobs:
   test:
-    name: ${{ matrix.std }} / ${{ matrix.backend }} / ${{ matrix.serde }}
+    name: ${{ matrix.std }} / ${{ matrix.serde }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         std: [std, no_std]
-        backend: [pure_rust, ring]
         serde: [serde, no-serde]
-        exclude:
-          # ring requires std
-          - std: no_std
-            backend: ring
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -26,9 +21,9 @@ jobs:
           override: true
       - name: Test
         run: |
-          features="${{ matrix.backend }}"
+          features=""
           if [ "${{ matrix.std }}" = "std" ]; then
-            features="std ${features}"
+            features="std"
           fi
           if [ "${{ matrix.serde }}" = "serde" ]; then
             features="${features} serde"
@@ -92,9 +87,9 @@ jobs:
           override: true
       - name: Build
         run: |
-          features="pure_rust"
+          features=""
           if [ "${{ matrix.serde }}" = "serde" ]; then
-            features="${features} serde"
+            features="serde"
           fi
           cargo build --no-default-features --features "${features}" --target thumbv7em-none-eabi
 
@@ -110,14 +105,14 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-tarpaulin
-      - name: Run cargo-tarpaulin (ring feature)
-        run: cargo tarpaulin --ignore-tests --out Xml --no-default-features --features=std,ring,serde
+      - name: Run cargo-tarpaulin
+        run: cargo tarpaulin --ignore-tests --out Xml --features=serde
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-      - name: Run cargo-tarpaulin
-        run: cargo tarpaulin --ignore-tests --out Xml --no-default-features --features=pure_rust,serde
+      - name: Run cargo-tarpaulin (no_std)
+        run: cargo tarpaulin --ignore-tests --out Xml --no-default-features --features=serde
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v5
         with:
