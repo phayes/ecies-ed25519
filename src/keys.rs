@@ -1,4 +1,5 @@
 use super::Error;
+use alloc::vec::Vec;
 use core::iter::FromIterator;
 use curve25519_dalek::constants;
 use curve25519_dalek::edwards::{CompressedEdwardsY, EdwardsPoint};
@@ -179,6 +180,8 @@ impl AsRef<[u8]> for PublicKey {
 // "serde" feature
 // ---------------
 
+#[cfg(feature = "serde")]
+use alloc::string::String;
 #[cfg(feature = "serde")]
 use serde::{
     de::Error as SerdeError, de::Unexpected, de::Visitor, Deserialize, Deserializer, Serialize,

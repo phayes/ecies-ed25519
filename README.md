@@ -21,7 +21,7 @@ It uses the excellent [curve25519-dalek](https://github.com/dalek-cryptography/c
 
 2. The `ring` backend uses [ring](https://github.com/briansmith/ring).  It uses rock solid primitives based on BoringSSL, but cannot run on all platforms. For example it won't work on WASM. To activate this backend add this to your Cargo.toml file: 
 
-   ` ecies-ed25519 = { version = "0.5", features = ["ring"] }`
+   `ecies-ed25519 = { version = "0.6", default-features = false, features = ["std", "ring"] }`
 
 ### Example Usage
 ```rust
@@ -41,12 +41,23 @@ let decrypted = ecies_ed25519::decrypt(&secret, &encrypted);
 
 The `serde` feature is provided for serializing / deserializing private and public keys.
 
+### `no_std` Support
+
+This crate works in `no_std` environments that provide `alloc`. Disable default features and enable the `pure_rust` backend:
+
+```
+ecies-ed25519 = { version = "0.6", default-features = false, features = ["pure_rust"] }
+```
+
+The `ring` backend requires `std`.
+
 
 ### Running Tests
 
-You should run tests on both backends:
+You should run tests on both backends, including a `no_std` build:
 ```
-cargo test --no-default-features --features "ring serde"
+cargo test --no-default-features --features "std ring serde"
+cargo test --no-default-features --features "std pure_rust serde"
 cargo test --no-default-features --features "pure_rust serde"
 ```
 

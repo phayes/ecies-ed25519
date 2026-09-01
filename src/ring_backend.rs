@@ -1,3 +1,5 @@
+use alloc::borrow::ToOwned;
+use alloc::vec::Vec;
 use rand_core::CryptoRng;
 use ring::aead::*;
 use ring::hkdf::*;

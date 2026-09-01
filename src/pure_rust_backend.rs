@@ -1,5 +1,6 @@
 use aes_gcm::aead::{self, Aead, KeyInit};
 use aes_gcm::Aes256Gcm;
+use alloc::vec::Vec;
 use hkdf::Hkdf;
 use rand_core::CryptoRng;
 use sha2::Sha256;

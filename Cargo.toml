@@ -1,11 +1,12 @@
 [package]
 name = "ecies-ed25519"
-version = "0.5.1"
+version = "0.6.0"
 authors = ["phayes <patrick.d.hayes@gmail.com>"]
 edition = "2018"
+resolver = "2"
 license = "MIT OR Apache-2.0"
 description = "ECIES on Twisted Edwards Curve25519 using AES-GCM and HKDF-SHA256"
-categories = ["cryptography"]
+categories = ["cryptography", "no-std"]
 keywords = ["ecies", "encryption", "ed25519", "curve25519", "aes-gcm"]
 repository = "https://github.com/phayes/ecies-ed25519"
 readme = "README.md"
@@ -13,21 +14,22 @@ readme = "README.md"
 [dependencies]
 rand_core = "0.10.1"
 curve25519-dalek = { version = "5.0.0", features = ["legacy_compatibility"] }
-thiserror = "2.0.18"
-hex = "0.4.3"
+thiserror = { version = "2.0.18", default-features = false }
+hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 zeroize = "1.9.0"
 # "serde" feature
-serde = { version = "1.0.228", optional = true }
+serde = { version = "1.0.228", optional = true, default-features = false, features = ["alloc"] }
 # "ring" feature
 ring = { version = "0.17.14", optional = true, features = [] }
 # "pure_rust" feature
-aes-gcm = { version = "0.11.0", optional = true }
+aes-gcm = { version = "0.11.0", optional = true, default-features = false, features = ["aes", "alloc"] }
 sha2 = { version = "0.11.0", optional = true }
 digest = { version = "0.11.3", optional = true }
 hkdf = { version = "0.13.0", optional = true }
 
 [features]
-default = ["pure_rust"]
+default = ["pure_rust", "std"]
+std = ["hex/std", "serde?/std", "thiserror/std"]
 pure_rust = ["aes-gcm", "sha2", "digest", "hkdf"]
 
 [dev-dependencies]

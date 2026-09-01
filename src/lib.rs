@@ -11,7 +11,7 @@
 //!   - The `ring` backend uses [ring](https://briansmith.org/rustdoc/ring/). It uses rock solid primitives based on BoringSSL,
 //!     but cannot run on all platforms. For example it won't work in web assembly. To enable it add the following to your Cargo.toml:
 //!
-//!     `ecies-ed25519 = { version = "0.3", features = ["ring"] }`
+//!     `ecies-ed25519 = { version = "0.6", default-features = false, features = ["std", "ring"] }`
 //!
 //! ## Example Usage
 //! ```rust
@@ -31,7 +31,20 @@
 //!
 //! The `serde` feature is provided for serializing / deserializing private and public keys.
 //!
+//! ## `no_std` support
+//!
+//! This crate supports `no_std` with `alloc`. Disable default features and enable a backend:
+//!
+//! `ecies-ed25519 = { version = "0.6", default-features = false, features = ["pure_rust"] }`
+//!
+//! The `ring` backend requires the `std` feature.
+//!
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
+extern crate alloc;
+
+use alloc::vec::Vec;
 use curve25519_dalek::scalar::Scalar;
 use rand_core::CryptoRng;
 
@@ -59,6 +72,9 @@ compile_error!(
 compile_error!(
     "ecies-rd25519: Feature 'ring' and 'pure_rust' cannot both be enabled. Please choose one."
 );
+
+#[cfg(all(feature = "ring", not(feature = "std")))]
+compile_error!("ecies-rd25519: the `ring` backend requires the `std` feature.");
 
 const HKDF_INFO: &[u8; 13] = b"ecies-ed25519";
 
@@ -114,9 +130,7 @@ fn generate_shared(secret: &SecretKey, public: &PublicKey) -> SharedSecret {
     let shared_point = public * secret;
     let shared_point_compressed = shared_point.compress();
 
-    let output = shared_point_compressed.as_bytes().to_owned();
-
-    output
+    *shared_point_compressed.as_bytes()
 }
 
 fn encapsulate(emphemeral_sk: &SecretKey, peer_pk: &PublicKey) -> AesKey {
@@ -175,6 +189,8 @@ pub enum Error {
 pub mod tests {
     use super::*;
 
+    use alloc::string::String;
+    use alloc::vec;
     use rand::{Rng, SeedableRng};
 
     #[test]
